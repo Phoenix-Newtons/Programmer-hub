@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Programmer's Hub dashboard — create and edit your developer profile." />
+  <title>Dashboard • Programmer's Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-badge">P</span>
+          <span>
+            Programmer’s Hub
+            <div style="font-size:.8rem;font-weight:500;color:var(--muted);margin-top:2px;">Developer dashboard</div>
+          </span>
+        </a>
+        <div class="nav-actions">
+          <div class="user-pill" id="dashUserPill"><span class="user-dot"></span><span id="dashUserEmail">Signed in</span></div>
+          <a class="btn btn-ghost" href="index.html">Home</a>
+          <button class="btn btn-ghost" id="dashLogoutBtn">Logout</button>
+        </div>
+        <button class="menu-btn" id="menuBtnDash" aria-label="Open menu">☰</button>
+      </div>
+      <div class="mobile-panel" id="mobilePanelDash">
+        <div class="stack">
+          <a href="index.html">Home</a>
+          <button class="btn btn-ghost" id="dashLogoutBtnMobile">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="dashboard">
+      <aside class="sidebar">
+        <div class="side-top">
+          <div class="side-avatar" id="sideAvatar">PH</div>
+          <div>
+            <div style="font-weight:800" id="sideName">Profile Dashboard</div>
+            <div class="small" id="sideEmail">Loading account...</div>
+          </div>
+        </div>
+
+        <nav class="side-nav">
+          <button class="active" data-panel="profilePanel">Profile</button>
+          <button data-panel="projectsPanel">Projects</button>
+          <button data-panel="settingsPanel">Settings</button>
+        </nav>
+
+        <div class="progress-wrap">
+          <div class="small">Profile completion</div>
+          <div class="progress-bar"><span id="profileProgress"></span></div>
+          <div class="small" id="completionText">0% complete</div>
+        </div>
+
+        <div class="notice" id="dashNotice">Fill in your profile and save it to Supabase.</div>
+      </aside>
+
+      <div class="content-stack" style="display:grid;gap:18px;">
+        <section class="panel" id="profilePanel">
+          <h2>Your developer profile</h2>
+          <p>Signed-in users can create or edit only their own profile.</p>
+
+          <form id="profileForm" class="auth-form">
+            <div class="form-grid">
+              <label class="form-label">Full name
+                <input id="name" type="text" placeholder="Your name" required />
+              </label>
+              <label class="form-label">Title
+                <input id="title" type="text" placeholder="e.g. Full Stack Developer" />
+              </label>
+
+              <label class="form-label">Location
+                <input id="location" type="text" placeholder="City, Country" />
+              </label>
+              <label class="form-label">Hourly rate
+                <input id="hourly_rate" type="text" placeholder="$25/hr" />
+              </label>
+
+              <label class="form-label">Email
+                <input id="email" type="email" placeholder="name@example.com" />
+              </label>
+              <label class="form-label">WhatsApp number
+                <input id="whatsapp" type="text" placeholder="256700000000" />
+              </label>
+
+              <label class="form-label">GitHub
+                <input id="github" type="url" placeholder="https://github.com/username" />
+              </label>
+              <label class="form-label">LinkedIn
+                <input id="linkedin" type="url" placeholder="https://linkedin.com/in/username" />
+              </label>
+
+              <label class="form-label full">Skills (comma separated)
+                <input id="skills" type="text" placeholder="React, Node.js, Supabase, CSS" />
+              </label>
+
+              <label class="form-label full">Bio
+                <textarea id="bio" placeholder="Tell people what you build and what makes you good at it."></textarea>
+              </label>
+            </div>
+
+            <div class="split">
+              <label class="form-label">Experience
+                <input id="experience" type="text" placeholder="5+ Years" />
+              </label>
+              <label class="form-label">Avatar URL
+                <input id="avatar_url" type="url" placeholder="Optional image URL" />
+              </label>
+            </div>
+
+            <div class="inline-actions">
+              <label class="btn btn-ghost" style="position:relative;overflow:hidden;">
+                Upload avatar
+                <input id="avatarFile" type="file" accept="image/*" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
+              </label>
+              <button class="btn btn-primary" type="submit">Save profile</button>
+              <button class="btn btn-ghost" type="button" id="loadProfileBtn">Reload</button>
+            </div>
+
+            <p class="auth-message" id="formMsg"></p>
+          </form>
+        </section>
+
+        <section class="panel" id="projectsPanel">
+          <h2>Portfolio / projects</h2>
+          <p>Connect this to a <strong>projects</strong> table later. For now, keep your best links in the profile fields above.</p>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <h4>Project 1</h4>
+              <p>Add screenshots, live demo links, and GitHub repositories.</p>
+            </div>
+            <div class="preview-card">
+              <h4>Project 2</h4>
+              <p>Show coding work that proves your skill and experience.</p>
+            </div>
+            <div class="preview-card">
+              <h4>Project 3</h4>
+              <p>Use Supabase Storage later for image uploads.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="settingsPanel">
+          <h2>Settings</h2>
+          <p>Toggle profile visibility and keep your data updated.</p>
+          <div class="table-list">
+            <div class="table-item">
+              <div>
+                <div style="font-weight:700">Public profile</div>
+                <div class="small">Visible to visitors on the homepage.</div>
+              </div>
+              <span class="badge" id="publicStatus">On</span>
+            </div>
+            <div class="table-item">
+              <div>
+                <div style="font-weight:700">Verification</div>
+                <div class="small">Admins can mark trusted users as verified.</div>
+              </div>
+              <span class="badge" id="verifiedStatus">Waiting</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>

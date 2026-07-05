@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Programmer's Hub — a modern developer marketplace for showcasing skills and contacting developers via WhatsApp or email." />
+  <title>Programmer's Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a class="brand" href="#home">
+          <span class="brand-badge">P</span>
+          <span>
+            Programmer’s Hub
+            <div style="font-size:.8rem;font-weight:500;color:var(--muted);margin-top:2px;">Find talent. Hire faster.</div>
+          </span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#developers">Developers</a>
+          <a href="#features">Features</a>
+          <a href="#contact">Join</a>
+          <a href="dashboard.html">Dashboard</a>
+        </nav>
+
+        <div class="nav-actions">
+          <div class="user-pill" id="userPill"><span class="user-dot"></span><span id="userEmail">Signed in</span></div>
+          <a class="btn btn-ghost" href="#developers">Browse</a>
+          <button class="btn btn-primary" id="openAuthBtn">Login / Sign Up</button>
+          <button class="btn btn-ghost" id="logoutBtn" style="display:none;">Logout</button>
+        </div>
+
+        <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+      </div>
+
+      <div class="mobile-panel" id="mobilePanel">
+        <div class="stack">
+          <a href="#developers">Developers</a>
+          <a href="#features">Features</a>
+          <a href="#contact">Join</a>
+          <a href="dashboard.html">Dashboard</a>
+          <button class="btn btn-primary" id="openAuthBtnMobile">Login / Sign Up</button>
+          <button class="btn btn-ghost" id="logoutBtnMobile" style="display:none;">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="home" class="hero">
+    <div class="container">
+      <section class="hero-grid">
+        <div>
+          <span class="eyebrow">⚡ Modern developer marketplace with WhatsApp + email</span>
+          <h1>Showcase programming skills in a premium online marketplace.</h1>
+          <p class="lead">
+            Build a polished website where developers advertise their skills, share portfolios, and get contacted instantly through WhatsApp or email.
+            This starter is responsive, stylish, and connected to Supabase authentication and profiles.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#developers">Explore Developers</a>
+            <a class="btn btn-ghost" href="dashboard.html">Open Dashboard</a>
+          </div>
+
+          <div class="stats">
+            <div class="stat glass"><b id="totalProfiles">0</b><span>Developer profiles</span></div>
+            <div class="stat glass"><b>1 click</b><span>WhatsApp or email contact</span></div>
+            <div class="stat glass"><b>Supabase</b><span>Auth, database, storage</span></div>
+          </div>
+        </div>
+
+        <aside class="showcase">
+          <div class="showcase-card">
+            <div class="topline">
+              <div>
+                <div style="color:var(--muted);font-size:.88rem;">Live profile preview</div>
+                <h3 class="name" style="margin-top:6px;" id="featuredName">No profile loaded</h3>
+                <div class="role" id="featuredRole">Connect Supabase to show the first developer profile here.</div>
+              </div>
+              <span class="verified" id="featuredBadge">○ No data</span>
+            </div>
+
+            <div class="profile">
+              <div class="avatar" id="featuredAvatar">PH</div>
+              <div>
+                <div class="meta" id="featuredMeta">
+                  <span>⭐ 0.0 rating</span>
+                  <span>—</span>
+                  <span>—</span>
+                </div>
+                <p class="desc" style="margin-top:14px;" id="featuredBio">
+                  Developer profiles will load from your Supabase database. No fake programmers are shown here.
+                </p>
+                <div class="skills" id="featuredSkills"></div>
+                <div class="contacts" id="featuredContacts"></div>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="features" class="features">
+        <div class="section-title">
+          <div>
+            <h2>Built to look premium on every screen.</h2>
+            <p>Glass cards, gradient accents, strong spacing, and clean typography give the site a modern coding-platform feel.</p>
+          </div>
+        </div>
+
+        <div class="feature-grid">
+          <div class="feature glass">
+            <div class="icon">⌘</div>
+            <h3>Responsive UI</h3>
+            <p>Desktop, tablet, and mobile layouts adjust smoothly without breaking the design.</p>
+          </div>
+          <div class="feature glass">
+            <div class="icon">✉</div>
+            <h3>Email contact</h3>
+            <p>Each developer can be contacted with a direct email link for faster business communication.</p>
+          </div>
+          <div class="feature glass">
+            <div class="icon">☁</div>
+            <h3>Supabase-ready</h3>
+            <p>Authentication, profiles, skills, uploads, search, and dashboard data can load from Supabase.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="developers" class="search-wrap">
+        <div class="section-title">
+          <div>
+            <h2>Find developers by skill, title, or location.</h2>
+            <p>Search and filter profiles, then contact the developer through WhatsApp or email directly from their card.</p>
+          </div>
+        </div>
+
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M20 20l-3.5-3.5"></path>
+          </svg>
+          <input id="searchInput" type="text" placeholder="Search by skill, name, or location..." />
+        </div>
+
+        <div class="filters" id="filters">
+          <button class="filter active" data-filter="All">All</button>
+          <button class="filter" data-filter="React">React</button>
+          <button class="filter" data-filter="Supabase">Supabase</button>
+          <button class="filter" data-filter="Node.js">Node.js</button>
+          <button class="filter" data-filter="Flutter">Flutter</button>
+          <button class="filter" data-filter="CSS">CSS</button>
+        </div>
+
+        <div class="grid" id="developerGrid">
+          <div class="loading-state">Loading developer profiles from Supabase...</div>
+        </div>
+      </section>
+
+      <section id="contact" class="cta">
+        <div>
+          <h2>Ready to build the full platform?</h2>
+          <p>
+            This project includes the homepage, dashboard, auth flow, and real profile loading from Supabase.
+            Next you can connect profile uploads, portfolio items, and admin controls.
+          </p>
+        </div>
+        <div class="cta-box">
+          <a class="btn btn-primary" href="mailto:hello@programmershub.com">✉ Email Support</a>
+          <a class="btn btn-success" href="https://wa.me/256700000000" target="_blank" rel="noreferrer">💬 WhatsApp Support</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">© <span id="year"></span> Programmer’s Hub. Built for modern programmers.</div>
+  </footer>
+
+  <div class="auth-modal" id="authModal" aria-hidden="true">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h3>Account access</h3>
+        <button class="close-btn" id="closeAuthBtn" aria-label="Close auth modal">×</button>
+      </div>
+
+      <form class="auth-form" id="authForm">
+        <input id="authEmail" type="email" placeholder="Email address" required />
+        <input id="authPassword" type="password" placeholder="Password" required />
+        <div class="auth-row">
+          <button class="btn btn-primary" type="submit" name="mode" value="signup">Sign Up</button>
+          <button class="btn btn-ghost" type="submit" name="mode" value="signin">Login</button>
+        </div>
+        <button class="btn btn-ghost" type="button" id="resetBtn">Forgot password?</button>
+        <p class="auth-message" id="authMsg"></p>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient("https://ggfukwknodeqwnitkjvk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZnVrd2tub2RlcXduaXRranZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTQwMjMsImV4cCI6MjA5ODgzMDAyM30.oqX9-CyBRox5hgFPjkzzPuCrJvsoFqbbwBgwMuFK7Vw", {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+
+    const PH = window.PH;
+    const grid = document.getElementById("developerGrid");
+    const searchInput = document.getElementById("searchInput");
+    const filters = document.getElementById("filters");
+    const year = document.getElementById("year");
+    const mobilePanel = document.getElementById("mobilePanel");
+    const menuBtn = document.getElementById("menuBtn");
+    const totalProfiles = document.getElementById("totalProfiles");
+    const featuredName = document.getElementById("featuredName");
+    const featuredRole = document.getElementById("featuredRole");
+    const featuredBadge = document.getElementById("featuredBadge");
+    const featuredAvatar = document.getElementById("featuredAvatar");
+    const featuredMeta = document.getElementById("featuredMeta");
+    const featuredBio = document.getElementById("featuredBio");
+    const featuredSkills = document.getElementById("featuredSkills");
+    const featuredContacts = document.getElementById("featuredContacts");
+
+    const authModal = document.getElementById("authModal");
+    const openAuthBtn = document.getElementById("openAuthBtn");
+    const openAuthBtnMobile = document.getElementById("openAuthBtnMobile");
+    const closeAuthBtn = document.getElementById("closeAuthBtn");
+    const authForm = document.getElementById("authForm");
+    const authEmail = document.getElementById("authEmail");
+    const authPassword = document.getElementById("authPassword");
+    const authMsg = document.getElementById("authMsg");
+    const resetBtn = document.getElementById("resetBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const logoutBtnMobile = document.getElementById("logoutBtnMobile");
+    const userPill = document.getElementById("userPill");
+    const userEmail = document.getElementById("userEmail");
+
+    let activeFilter = "All";
+    let developerData = [];
+
+    year.textContent = new Date().getFullYear();
+
+    function openAuth() {{
+      authModal.classList.add("open");
+      authModal.setAttribute("aria-hidden", "false");
+    }}
+    function closeAuth() {{
+      authModal.classList.remove("open");
+      authModal.setAttribute("aria-hidden", "true");
+      authMsg.textContent = "";
+    }}
+
+    function matchesFilter(profile) {{
+      if (activeFilter === "All") return true;
+      return PH.normalizeSkills(profile).includes(activeFilter);
+    }}
+
+    function matchesQuery(profile, q) {{
+      const skills = PH.normalizeSkills(profile).join(" ");
+      const haystack = [profile.name, profile.title, profile.location, profile.bio, profile.email, profile.whatsapp, skills].join(" ").toLowerCase();
+      return haystack.includes(q);
+    }}
+
+    function renderFeatured(profile) {{
+      if (!profile) {{
+        featuredName.textContent = "No profile loaded";
+        featuredRole.textContent = "Connect Supabase to show the first developer profile here.";
+        featuredBadge.textContent = "○ No data";
+        featuredAvatar.textContent = "PH";
+        featuredMeta.innerHTML = "<span>⭐ 0.0 rating</span><span>—</span><span>—</span>";
+        featuredBio.textContent = "Developer profiles will load from your Supabase database. No fake programmers are shown here.";
+        featuredSkills.innerHTML = "";
+        featuredContacts.innerHTML = "";
+        return;
+      }}
+      featuredName.textContent = PH.safeText(profile.name, "Developer");
+      featuredRole.textContent = `${PH.safeText(profile.title)} • ${PH.safeText(profile.location)}`;
+      featuredBadge.textContent = profile.verified ? "✔ Verified" : "○ Not verified";
+      featuredAvatar.textContent = PH.initials(profile.name);
+      featuredMeta.innerHTML = `<span>⭐ ${PH.safeText(profile.rating, "0.0")}</span><span>${PH.safeText(profile.experience, "—")}</span><span>${PH.safeText(profile.hourly_rate || profile.hourly, "—")}</span>`;
+      featuredBio.textContent = PH.safeText(profile.bio, "No bio provided yet.");
+      featuredSkills.innerHTML = PH.normalizeSkills(profile).slice(0, 5).map(skill => `<span class="chip">${skill}</span>`).join("");
+      featuredContacts.innerHTML = PH.renderContacts(profile);
+    }}
+
+    function renderGrid() {{
+      const q = searchInput.value.trim().toLowerCase();
+      const items = developerData.filter(profile => matchesFilter(profile) && matchesQuery(profile, q));
+
+      if (!items.length) {{
+        grid.innerHTML = `<div class="empty-state">No developer profiles found.<br /><br />Add real users to your <strong>profiles</strong> table in Supabase, or adjust your search and filters.</div>`;
+        return;
+      }}
+
+      grid.innerHTML = items.map(profile => {{
+        const skills = PH.normalizeSkills(profile);
+        const displayName = PH.safeText(profile.name, "Developer");
+        const verified = !!profile.verified;
+        return `
+          <article class="card">
+            <div class="card-head">
+              <div class="card-info">
+                <div class="mini-avatar">${PH.initials(displayName)}</div>
+                <div>
+                  <h3>${displayName} ${verified ? '<span style="color:#7dd3fc;">✔</span>' : ""}</h3>
+                  <div class="title">${PH.safeText(profile.title, "Developer")}</div>
+                  <div class="place">${PH.safeText(profile.location, "Unknown location")}</div>
+                </div>
+              </div>
+              <span class="badge ${profile.featured ? "featured" : ""}">${profile.featured ? "Featured" : (verified ? "Verified" : "Profile")}</span>
+            </div>
+            <p class="desc">${PH.safeText(profile.bio, "No bio provided yet.")}</p>
+            <div class="rating">
+              <span class="stars">${PH.stars(profile.rating)}</span>
+              <span>${PH.safeText(profile.rating, "0.0")}</span>
+              <span>• ${PH.safeText(profile.experience, "—")}</span>
+              <span>• ${PH.safeText(profile.hourly_rate || profile.hourly, "—")}</span>
+            </div>
+            <div class="skills">
+              ${skills.length ? skills.map(skill => `<span class="chip">${skill}</span>`).join("") : '<span class="chip">No skills added yet</span>'}
+            </div>
+            <div class="card-actions">
+              ${PH.renderContacts(profile) || '<span class="chip">No contact details yet</span>'}
+            </div>
+            <div class="links">
+              ${profile.github ? `<a href="${profile.github}" target="_blank" rel="noreferrer">GitHub</a>` : "<span>GitHub not added</span>"}
+              ${profile.linkedin ? `<a href="${profile.linkedin}" target="_blank" rel="noreferrer">LinkedIn</a>` : "<span>LinkedIn not added</span>"}
+            </div>
+          </article>
+        `;
+      }}).join("");
+    }}
+
+    async function loadDevelopers() {{
+      grid.innerHTML = '<div class="loading-state">Loading developer profiles from Supabase...</div>';
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", {{ ascending: false }});
+      if (error) {{
+        console.error(error);
+        developerData = [];
+        totalProfiles.textContent = "0";
+        renderFeatured(null);
+        grid.innerHTML = `<div class="empty-state">Unable to load profiles from Supabase. Check your table name, policies, and API keys.</div>`;
+        return;
+      }}
+      developerData = Array.isArray(data) ? data : [];
+      totalProfiles.textContent = String(developerData.length);
+      renderFeatured(developerData[0] || null);
+      renderGrid();
+    }}
+
+    async function syncAuthUI() {{
+      const {{ data }} = await supabase.auth.getSession();
+      const session = data?.session;
+      const loggedIn = !!session;
+      logoutBtn.style.display = loggedIn ? "inline-flex" : "none";
+      logoutBtnMobile.style.display = loggedIn ? "inline-flex" : "none";
+      openAuthBtn.style.display = loggedIn ? "none" : "inline-flex";
+      openAuthBtnMobile.style.display = loggedIn ? "none" : "inline-flex";
+      userPill.style.display = loggedIn ? "inline-flex" : "none";
+      userEmail.textContent = session?.user?.email || "Signed in";
+    }}
+
+    openAuthBtn.addEventListener("click", openAuth);
+    openAuthBtnMobile.addEventListener("click", openAuth);
+    closeAuthBtn.addEventListener("click", closeAuth);
+    authModal.addEventListener("click", (e) => {{ if (e.target === authModal) closeAuth(); }});
+
+    authForm.addEventListener("submit", async (e) => {{
+      e.preventDefault();
+      const mode = e.submitter?.value;
+      const email = authEmail.value.trim();
+      const password = authPassword.value.trim();
+      if (!email || !password) return;
+      authMsg.textContent = "Working...";
+
+      if (mode === "signup") {{
+        const {{ error }} = await supabase.auth.signUp({{ email, password }});
+        if (error) return authMsg.textContent = error.message;
+        authMsg.textContent = "Account created. Check your email if confirmation is enabled.";
+        await syncAuthUI();
+      }}
+      if (mode === "signin") {{
+        const {{ error }} = await supabase.auth.signInWithPassword({{ email, password }});
+        if (error) return authMsg.textContent = error.message;
+        authMsg.textContent = "Logged in successfully.";
+        closeAuth();
+        await syncAuthUI();
+      }}
+    }});
+
+    resetBtn.addEventListener("click", async () => {{
+      const email = authEmail.value.trim();
+      if (!email) return authMsg.textContent = "Enter your email first.";
+      const {{ error }} = await supabase.auth.resetPasswordForEmail(email, {{ redirectTo: window.location.origin }});
+      if (error) return authMsg.textContent = error.message;
+      authMsg.textContent = "Password reset email sent.";
+    }});
+
+    logoutBtn.addEventListener("click", async () => {{
+      const {{ error }} = await supabase.auth.signOut();
+      if (error) return authMsg.textContent = error.message;
+      await syncAuthUI();
+    }});
+
+    logoutBtnMobile.addEventListener("click", async () => {{
+      const {{ error }} = await supabase.auth.signOut();
+      if (error) return authMsg.textContent = error.message;
+      await syncAuthUI();
+      mobilePanel.classList.remove("open");
+    }});
+
+    searchInput.addEventListener("input", renderGrid);
+    filters.addEventListener("click", (e) => {{
+      const btn = e.target.closest("[data-filter]");
+      if (!btn) return;
+      activeFilter = btn.dataset.filter;
+      document.querySelectorAll(".filter").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderGrid();
+    }});
+
+    menuBtn.addEventListener("click", () => mobilePanel.classList.toggle("open"));
+    mobilePanel.querySelectorAll("a,button").forEach(link => link.addEventListener("click", () => mobilePanel.classList.remove("open")));
+
+    supabase.auth.onAuthStateChange(() => syncAuthUI());
+    await syncAuthUI();
+    await loadDevelopers();
+    window.PH_SUPABASE = supabase;
+  </script>
+</body>
+</html>

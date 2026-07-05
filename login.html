@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login • Programmer's Hub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <main class="container" style="padding:80px 0;">
+    <section class="panel" style="max-width:520px;margin:0 auto;">
+      <h2>Login or create an account</h2>
+      <p>Use your email and password to enter the dashboard.</p>
+
+      <form id="loginForm" class="auth-form">
+        <input id="loginEmail" type="email" placeholder="Email address" required />
+        <input id="loginPassword" type="password" placeholder="Password" required />
+        <div class="auth-row">
+          <button class="btn btn-primary" type="submit" name="mode" value="signin">Login</button>
+          <button class="btn btn-ghost" type="submit" name="mode" value="signup">Sign Up</button>
+        </div>
+        <a class="btn btn-ghost" href="index.html">Back home</a>
+        <p class="auth-message" id="loginMsg"></p>
+      </form>
+    </section>
+  </main>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient("https://ggfukwknodeqwnitkjvk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZnVrd2tub2RlcXduaXRranZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTQwMjMsImV4cCI6MjA5ODgzMDAyM30.oqX9-CyBRox5hgFPjkzzPuCrJvsoFqbbwBgwMuFK7Vw");
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("loginMsg");
+    const email = document.getElementById("loginEmail");
+    const password = document.getElementById("loginPassword");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const mode = e.submitter?.value;
+      msg.textContent = "Working...";
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({ email: email.value, password: password.value });
+        if (error) return msg.textContent = error.message;
+        msg.textContent = "Account created. Check email if confirmation is on.";
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({ email: email.value, password: password.value });
+        if (error) return msg.textContent = error.message;
+        window.location.href = "dashboard.html";
+      }
+    });
+  </script>
+</body>
+</html>

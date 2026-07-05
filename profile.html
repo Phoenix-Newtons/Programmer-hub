@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile • Programmer's Hub</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <header class="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a class="brand" href="index.html">
+          <span class="brand-badge">P</span>
+          <span>Programmer’s Hub</span>
+        </a>
+        <div class="nav-actions">
+          <a class="btn btn-ghost" href="dashboard.html">Dashboard</a>
+          <a class="btn btn-primary" href="index.html">Home</a>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="container" style="padding:40px 0 70px;">
+    <section class="panel">
+      <div id="profileView" class="loading-state">Loading profile...</div>
+    </section>
+  </main>
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+    const supabase = createClient("https://ggfukwknodeqwnitkjvk.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZnVrd2tub2RlcXduaXRranZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTQwMjMsImV4cCI6MjA5ODgzMDAyM30.oqX9-CyBRox5hgFPjkzzPuCrJvsoFqbbwBgwMuFK7Vw");
+    const view = document.getElementById("profileView");
+    const params = new URLSearchParams(location.search);
+    const id = params.get("id");
+    if (!id) {
+      view.innerHTML = '<div class="empty-state">No profile selected.</div>';
+    } else {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", id).single();
+      if (error || !data) {
+        view.innerHTML = '<div class="empty-state">Profile not found.</div>';
+      } else {
+        const skills = Array.isArray(data.skills) ? data.skills : String(data.skills || "").split(",").map(s => s.trim()).filter(Boolean);
+        view.innerHTML = `
+          <div style="display:grid;gap:14px;">
+            <div class="topline" style="margin:0;padding:0;border:0;">
+              <div>
+                <h2 style="margin:0;">${data.name || "Developer"}</h2>
+                <div class="small">${data.title || "Developer"} • ${data.location || ""}</div>
+              </div>
+              <span class="verified">${data.verified ? "✔ Verified" : "Profile"}</span>
+            </div>
+            <p class="desc">${data.bio || ""}</p>
+            <div class="skills">${skills.map(s => `<span class="chip">${s}</span>`).join("")}</div>
+            <div class="contacts">
+              ${data.whatsapp ? `<a class="btn btn-success" href="https://wa.me/${String(data.whatsapp).replace(/[^\\d]/g, "")}" target="_blank">WhatsApp</a>` : ""}
+              ${data.email ? `<a class="btn btn-ghost" href="mailto:${data.email}">Email</a>` : ""}
+            </div>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

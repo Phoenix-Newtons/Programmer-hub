@@ -31,7 +31,12 @@ function listFiles(dir, base = dir) {
   return readdirSync(dir).flatMap((entry) => {
     const full = resolve(dir, entry);
     if (statSync(full).isDirectory()) return listFiles(full, base);
-    return [full.slice(base.length + 1).split("\\").join("/")];
+    return [
+      full
+        .slice(base.length + 1)
+        .split("\\")
+        .join("/"),
+    ];
   });
 }
 
@@ -53,50 +58,88 @@ const jsAssets = assets.filter((file) => file.endsWith(".js"));
 check("index.html references the hashed entry bundle", /assets\/index-[\w-]+\.js/.test(indexHtml));
 check("index.html references the hashed stylesheet", /assets\/index-[\w-]+\.css/.test(indexHtml));
 check("pre-paint theme script is inlined", indexHtml.includes("ph-theme"));
-check("no bundler-placeholder paths leak into the HTML", !indexHtml.includes("/@vite/") && !indexHtml.includes("/src/"));
-check("every asset chunk is present on disk", assets.length > 0, `${jsAssets.length} JS / ${assets.length - jsAssets.length} CSS`);
+check(
+  "no bundler-placeholder paths leak into the HTML",
+  !indexHtml.includes("/@vite/") && !indexHtml.includes("/src/")
+);
+check(
+  "every asset chunk is present on disk",
+  assets.length > 0,
+  `${jsAssets.length} JS / ${assets.length - jsAssets.length} CSS`
+);
 
 const sitemap = readFileSync(resolve(dist, "sitemap.xml"), "utf8");
 check("sitemap uses the official namespace", sitemap.includes("http://www.sitemaps.org/schemas/sitemap/0.9"));
-check("sitemap lists the public routes", ["/", "/developers", "/projects", "/hiring", "/about"].every((route) => sitemap.includes(`<loc>${route}</loc>`) || sitemap.includes(`${route}</loc>`)));
+check(
+  "sitemap lists the public routes",
+  ["/", "/developers", "/projects", "/hiring", "/about"].every(
+    (route) => sitemap.includes(`<loc>${route}</loc>`) || sitemap.includes(`${route}</loc>`)
+  )
+);
 check("sitemap keeps private routes out", !/loc>[^<]*\/(shortlist|dashboard|login)</.test(sitemap));
 
 const robots = readFileSync(resolve(dist, "robots.txt"), "utf8");
 check("robots.txt allows crawling", /User-agent: \*/i.test(robots) && /Allow: \//.test(robots));
-check("robots.txt hides private routes", ["/dashboard", "/login", "/shortlist"].every((route) => robots.includes(`Disallow: ${route}`)));
+check(
+  "robots.txt hides private routes",
+  ["/dashboard", "/login", "/shortlist"].every((route) => robots.includes(`Disallow: ${route}`))
+);
 check("robots.txt points at the sitemap", /^Sitemap: /m.test(robots));
 
 const manifest = JSON.parse(readFileSync(resolve(dist, "manifest.webmanifest"), "utf8"));
 check("manifest parses and declares a standalone display", manifest.display === "standalone");
-check("manifest icons exist on disk", manifest.icons.every((icon) => existsSync(resolve(dist, icon.src.replace(/^\//, "")))));
-check("manifest start_url sits inside its scope", new URL(manifest.start_url, "https://x.test/").pathname.startsWith(new URL(manifest.scope, "https://x.test/").pathname));
+check(
+  "manifest icons exist on disk",
+  manifest.icons.every((icon) => existsSync(resolve(dist, icon.src.replace(/^\//, ""))))
+);
+check(
+  "manifest start_url sits inside its scope",
+  new URL(manifest.start_url, "https://x.test/").pathname.startsWith(
+    new URL(manifest.scope, "https://x.test/").pathname
+  )
+);
 
 /* ---------------------------------------------------------------- *
  * Service worker — static shape
  * ---------------------------------------------------------------- */
 const sw = readFileSync(resolve(dist, "sw.js"), "utf8");
-check("sw.js is valid JavaScript", (() => {
-  try {
-    new vm.Script(sw);
-    return true;
-  } catch {
-    return false;
-  }
-})());
+check(
+  "sw.js is valid JavaScript",
+  (() => {
+    try {
+      new vm.Script(sw);
+      return true;
+    } catch {
+      return false;
+    }
+  })()
+);
 
 const precacheMatch = sw.match(/const PRECACHE = (\[[\s\S]*?\]);/);
 const precache = precacheMatch ? JSON.parse(precacheMatch[1]) : [];
 check("precache list is generated", precache.length > 0, `${precache.length} URLs`);
 check("precache includes the HTML shell", precache.includes("/index.html"));
-check("precache includes every JS chunk", jsAssets.every((file) => precache.includes(`/${file}`)));
-check("precache stays same-origin", precache.every((url) => url.startsWith("/")));
+check(
+  "precache includes every JS chunk",
+  jsAssets.every((file) => precache.includes(`/${file}`))
+);
+check(
+  "precache stays same-origin",
+  precache.every((url) => url.startsWith("/"))
+);
 check("precache has no duplicates", new Set(precache).size === precache.length);
 
 /* ---------------------------------------------------------------- *
  * Service worker — behaviour, in a sandbox with a fake CacheStorage
  * ---------------------------------------------------------------- */
 function cloneOf(body, init = {}) {
-  return { body, ok: init.ok ?? true, status: init.status ?? 200, type: init.type ?? "basic", clone: () => cloneOf(body, init) };
+  return {
+    body,
+    ok: init.ok ?? true,
+    status: init.status ?? 200,
+    type: init.type ?? "basic",
+    clone: () => cloneOf(body, init),
+  };
 }
 
 function createHarness() {
@@ -182,7 +225,10 @@ function createHarness() {
         ...init,
         waitUntil: (promise) => {
           intercepted = true;
-          Promise.resolve(promise).then(() => done(undefined), () => done(undefined));
+          Promise.resolve(promise).then(
+            () => done(undefined),
+            () => done(undefined)
+          );
         },
         respondWith: (promise) => {
           intercepted = true;
@@ -218,7 +264,10 @@ check("activate keeps only the current cache", harness.store.size === 1);
 const onlineNav = await harness.dispatch("fetch", {
   request: { method: "GET", mode: "navigate", url: "https://example.test/developers" },
 });
-check("navigations prefer the network", String(onlineNav.body).includes("network:https://example.test/developers"));
+check(
+  "navigations prefer the network",
+  String(onlineNav.body).includes("network:https://example.test/developers")
+);
 
 // Navigation offline → the cached shell is served instead of an error page.
 harness.state.online = false;
@@ -237,7 +286,11 @@ const assetUrl = `https://example.test/${jsAssets[0]}`;
 harness.state.requests.length = 0;
 await harness.dispatch("fetch", { request: { method: "GET", mode: "cors", url: assetUrl } });
 await harness.dispatch("fetch", { request: { method: "GET", mode: "cors", url: assetUrl } });
-check("hashed assets are cached after the first hit", harness.state.requests.length <= 1, `${harness.state.requests.length} network call(s)`);
+check(
+  "hashed assets are cached after the first hit",
+  harness.state.requests.length <= 1,
+  `${harness.state.requests.length} network call(s)`
+);
 
 // Cross-origin (Supabase) and mutations are never intercepted.
 harness.state.requests.length = 0;

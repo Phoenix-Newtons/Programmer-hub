@@ -24,11 +24,7 @@ export async function loadSearchIndex({ force = false } = {}) {
   if (inflight) return inflight;
 
   inflight = (async () => {
-    const [profiles, projects, jobs] = await Promise.all([
-      fetchProfiles(),
-      fetchProjects(),
-      fetchJobs(),
-    ]);
+    const [profiles, projects, jobs] = await Promise.all([fetchProfiles(), fetchProjects(), fetchJobs()]);
 
     cache = {
       developers: profiles.data || [],

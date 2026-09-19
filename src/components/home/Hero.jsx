@@ -1,5 +1,15 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BadgeCheck, Briefcase, Command, Rocket, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Briefcase,
+  Command,
+  Rocket,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from "lucide-react";
 import GoogleButton from "../auth/GoogleButton";
 import { SITE } from "../../lib/site";
 import { openPalette } from "../../lib/uiStore";
@@ -32,7 +42,8 @@ export default function Hero({ stats = [], developers = 0, roles = 0 }) {
 
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
             {SITE.name} is a developer marketplace where you publish a real profile, showcase the projects
-            you&rsquo;ve shipped, and get contacted by clients in one click — no gatekeepers, no recruiter fees.
+            you&rsquo;ve shipped, and get contacted by clients in one click — no gatekeepers, no recruiter
+            fees.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -52,8 +63,8 @@ export default function Hero({ stats = [], developers = 0, roles = 0 }) {
           <p className="mt-4 text-xs text-muted" aria-live="polite">
             {developers ? (
               <>
-                {pluralize(developers, "developer profile")} and {pluralize(roles, "open role")} indexed — search
-                them instantly.
+                {pluralize(developers, "developer profile")} and {pluralize(roles, "open role")} indexed —
+                search them instantly.
               </>
             ) : (
               <>Free forever for developers. Sign in with Google or email.</>
@@ -72,7 +83,9 @@ export default function Hero({ stats = [], developers = 0, roles = 0 }) {
                 </dt>
                 <dd className="mt-1 flex items-baseline gap-1 text-2xl font-black text-ink">
                   {stat.value}
-                  {stat.suffix ? <span className="text-sm font-bold text-brand-300">{stat.suffix}</span> : null}
+                  {stat.suffix ? (
+                    <span className="text-sm font-bold text-brand-300">{stat.suffix}</span>
+                  ) : null}
                 </dd>
               </div>
             ))}
@@ -152,7 +165,10 @@ export default function Hero({ stats = [], developers = 0, roles = 0 }) {
           <Briefcase className="h-4 w-4 text-brand-300" aria-hidden="true" />
           Direct hiring, no fees
         </span>
-        <Link to="/about" className="inline-flex items-center gap-1.5 font-semibold text-brand-300 hover:underline">
+        <Link
+          to="/about"
+          className="inline-flex items-center gap-1.5 font-semibold text-brand-300 hover:underline"
+        >
           Meet the builder
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
         </Link>

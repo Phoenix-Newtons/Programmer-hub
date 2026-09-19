@@ -6,7 +6,13 @@ const recentStore = createStore({ items: [] }, { storageKey: "ph:recents" });
 
 export function pushRecent(entry) {
   if (!entry?.id || !entry?.to) return;
-  const slim = { id: entry.id, label: entry.label, sublabel: entry.sublabel, group: entry.group, to: entry.to };
+  const slim = {
+    id: entry.id,
+    label: entry.label,
+    sublabel: entry.sublabel,
+    group: entry.group,
+    to: entry.to,
+  };
   recentStore.set((state) => ({
     items: [slim, ...state.items.filter((item) => item.id !== entry.id)].slice(0, MAX),
   }));

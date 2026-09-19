@@ -34,7 +34,15 @@ import useDocument from "../hooks/useDocument";
 import usePageMeta from "../hooks/usePageMeta";
 import { fetchProfile, fetchProfiles, fetchProjects } from "../lib/api";
 import { SITE } from "../lib/site";
-import { formatDate, hostFromUrl, normalizeList, safeText, waLink, copyToClipboard, timeAgo } from "../lib/utils";
+import {
+  formatDate,
+  hostFromUrl,
+  normalizeList,
+  safeText,
+  waLink,
+  copyToClipboard,
+  timeAgo,
+} from "../lib/utils";
 import { useToast } from "../context/ToastContext";
 
 export default function DeveloperProfile() {
@@ -72,13 +80,20 @@ export default function DeveloperProfile() {
   const similar = useMemo(() => {
     if (!person) return [];
     const skills = normalizeList(person.skills).map((skill) => skill.toLowerCase());
-    const city = String(person.location || "").split(",")[0].trim().toLowerCase();
+    const city = String(person.location || "")
+      .split(",")[0]
+      .trim()
+      .toLowerCase();
     return directory.data
       .filter((candidate) => candidate.id !== person.id)
       .map((candidate) => {
         const candidateSkills = normalizeList(candidate.skills).map((skill) => skill.toLowerCase());
         const shared = candidateSkills.filter((skill) => skills.includes(skill)).length;
-        const sameCity = city && String(candidate.location || "").toLowerCase().includes(city);
+        const sameCity =
+          city &&
+          String(candidate.location || "")
+            .toLowerCase()
+            .includes(city);
         return { candidate, score: shared * 2 + (sameCity ? 2 : 0) + (candidate.open_to_work ? 1 : 0) };
       })
       .filter((entry) => entry.score > 0)
@@ -229,20 +244,35 @@ export default function DeveloperProfile() {
           {(person.github || person.linkedin || person.website) && (
             <div className="mt-6 flex flex-wrap gap-3">
               {person.github ? (
-                <a href={person.github} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
+                <a
+                  href={person.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost text-sm"
+                >
                   <Github className="h-4 w-4" aria-hidden="true" />
                   {hostFromUrl(person.github)}
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               ) : null}
               {person.linkedin ? (
-                <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
+                <a
+                  href={person.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost text-sm"
+                >
                   <Linkedin className="h-4 w-4" aria-hidden="true" />
                   LinkedIn
                 </a>
               ) : null}
               {person.website ? (
-                <a href={person.website} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
+                <a
+                  href={person.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost text-sm"
+                >
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   {hostFromUrl(person.website)}
                 </a>
@@ -311,7 +341,9 @@ export default function DeveloperProfile() {
                     <fact.icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <div className="min-w-0">
-                    <dt className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted">{fact.label}</dt>
+                    <dt className="text-[0.7rem] font-semibold uppercase tracking-wider text-muted">
+                      {fact.label}
+                    </dt>
                     <dd className="text-sm font-semibold text-ink-soft">{fact.value}</dd>
                   </div>
                 </div>
@@ -349,7 +381,8 @@ export default function DeveloperProfile() {
               ) : null}
               {!person.email && !whatsapp ? (
                 <p className="text-sm text-muted">
-                  This developer hasn&rsquo;t published contact details. Try their GitHub or LinkedIn links above.
+                  This developer hasn&rsquo;t published contact details. Try their GitHub or LinkedIn links
+                  above.
                 </p>
               ) : null}
             </div>
@@ -363,7 +396,12 @@ export default function DeveloperProfile() {
           <div className="card p-5">
             <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-muted">More like this</h2>
             <div className="mt-3 grid gap-2">
-              <Button to={`/developers?q=${encodeURIComponent(skills[0] || "")}`} variant="ghost" fullWidth className="justify-start">
+              <Button
+                to={`/developers?q=${encodeURIComponent(skills[0] || "")}`}
+                variant="ghost"
+                fullWidth
+                className="justify-start"
+              >
                 <Users className="h-4 w-4" aria-hidden="true" />
                 Who else knows {skills[0] || "this stack"}?
               </Button>

@@ -38,7 +38,7 @@ export default function SaveButton({ profile, size = "sm", className, showLabel 
       )}
     >
       {saved ? <BookmarkCheck className="h-3.5 w-3.5" /> : <BookmarkPlus className="h-3.5 w-3.5" />}
-      {showLabel ? (saved ? "Saved" : "Save") : <span className="sr-only">{saved ? "Saved" : "Save"}</span>}
+      {showLabel ? saved ? "Saved" : "Save" : <span className="sr-only">{saved ? "Saved" : "Save"}</span>}
     </button>
   );
 }

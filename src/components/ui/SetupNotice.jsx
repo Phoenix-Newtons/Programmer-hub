@@ -27,8 +27,8 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-bold text-ink">{what} are unavailable offline</h3>
           <p className="mt-1 text-sm leading-relaxed text-muted">
-            This browser session can&rsquo;t reach Supabase, so nothing was loaded. Everything else on
-            the page still works — data appears as soon as the connection does.
+            This browser session can&rsquo;t reach Supabase, so nothing was loaded. Everything else on the
+            page still works — data appears as soon as the connection does.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -62,13 +62,15 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand-300">2.</span>
-                Paste and run <span className="font-mono text-ink-soft">supabase/schema.sql</span> from
-                this repo.
+                Paste and run <span className="font-mono text-ink-soft">supabase/schema.sql</span> from this
+                repo.
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand-300">3.</span>
-                Create a public storage bucket named{" "}
-                <span className="font-mono text-ink-soft">avatars</span> for profile photos.
+                Create a public storage bucket named <span className="font-mono text-ink-soft">
+                  avatars
+                </span>{" "}
+                for profile photos.
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand-300">4.</span>
@@ -79,7 +81,13 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
           ) : null}
 
           <div className="mt-5 flex flex-wrap gap-3">
-            <Button href="https://supabase.com/dashboard" size="sm" variant="ghost" icon={Terminal} iconRight={ExternalLink}>
+            <Button
+              href="https://supabase.com/dashboard"
+              size="sm"
+              variant="ghost"
+              icon={Terminal}
+              iconRight={ExternalLink}
+            >
               Open Supabase dashboard
             </Button>
             {onRetry ? (

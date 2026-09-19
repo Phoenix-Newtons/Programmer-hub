@@ -68,7 +68,9 @@ export default function ThemeToggle({ className, compact = false }) {
               }}
               className={cn(
                 "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
-                mode === option.id ? "bg-brand-500/15 font-semibold text-ink" : "text-ink-soft hover:bg-white/5"
+                mode === option.id
+                  ? "bg-brand-500/15 font-semibold text-ink"
+                  : "text-ink-soft hover:bg-white/5"
               )}
             >
               <option.icon className="h-4 w-4" aria-hidden="true" />

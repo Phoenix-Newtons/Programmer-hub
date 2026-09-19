@@ -70,7 +70,9 @@ describe("app shell", () => {
     const view = await renderWithProviders(<App />, { route: "/" });
     await settle();
 
-    await view.click(view.queryAll("button").find((button) => button.getAttribute("aria-label") === "Search the hub"));
+    await view.click(
+      view.queryAll("button").find((button) => button.getAttribute("aria-label") === "Search the hub")
+    );
 
     const dialog = view.query('[role="dialog"][aria-label="Search Programmer\'s Hub"]');
     expect(dialog).toBeTruthy();
@@ -82,7 +84,9 @@ describe("app shell", () => {
     const view = await renderWithProviders(<App />, { route: "/" });
     await settle();
 
-    const toggle = view.queryAll("button").find((button) => button.getAttribute("aria-label")?.startsWith("Theme:"));
+    const toggle = view
+      .queryAll("button")
+      .find((button) => button.getAttribute("aria-label")?.startsWith("Theme:"));
     expect(toggle).toBeTruthy();
     await view.click(toggle);
 

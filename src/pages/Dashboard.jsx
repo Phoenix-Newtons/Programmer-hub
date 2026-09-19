@@ -108,15 +108,13 @@ export default function Dashboard() {
     () => projects.data.filter((project) => project.user_id === user?.id),
     [projects.data, user?.id]
   );
-  const myJobs = useMemo(
-    () => jobs.data.filter((job) => job.user_id === user?.id),
-    [jobs.data, user?.id]
-  );
+  const myJobs = useMemo(() => jobs.data.filter((job) => job.user_id === user?.id), [jobs.data, user?.id]);
   const myJobIds = useMemo(() => myJobs.map((job) => job.id), [myJobs]);
   const jobIdsKey = myJobIds.join(",");
 
   const applications = useCollection(
-    () => (myJobIds.length ? fetchApplications({ jobIds: myJobIds }) : Promise.resolve({ data: [], error: null })),
+    () =>
+      myJobIds.length ? fetchApplications({ jobIds: myJobIds }) : Promise.resolve({ data: [], error: null }),
     [jobIdsKey]
   );
 
@@ -207,7 +205,9 @@ export default function Dashboard() {
     const { url, error } = await uploadAvatar(user.id, file);
     setUploading(false);
     if (error || !url) {
-      toast.error(friendlyError(error, "Upload failed. Create a public storage bucket named 'avatars' in Supabase."));
+      toast.error(
+        friendlyError(error, "Upload failed. Create a public storage bucket named 'avatars' in Supabase.")
+      );
       return;
     }
     update("avatar_url", url);
@@ -277,14 +277,26 @@ export default function Dashboard() {
   function exportApplications() {
     if (!applications.data.length) return;
     const csv = toCsv(applications.data, [
-      { key: "created_at", label: "Received", value: (row) => new Date(row.created_at).toISOString().slice(0, 10) },
-      { key: "job", label: "Role", value: (row) => myJobs.find((job) => job.id === row.job_id)?.title || "—" },
+      {
+        key: "created_at",
+        label: "Received",
+        value: (row) => new Date(row.created_at).toISOString().slice(0, 10),
+      },
+      {
+        key: "job",
+        label: "Role",
+        value: (row) => myJobs.find((job) => job.id === row.job_id)?.title || "—",
+      },
       { key: "applicant_name", label: "Name" },
       { key: "applicant_email", label: "Email" },
       { key: "portfolio_url", label: "Portfolio" },
       { key: "message", label: "Message" },
     ]);
-    const ok = downloadFile(`applications-${new Date().toISOString().slice(0, 10)}.csv`, csv, "text/csv;charset=utf-8");
+    const ok = downloadFile(
+      `applications-${new Date().toISOString().slice(0, 10)}.csv`,
+      csv,
+      "text/csv;charset=utf-8"
+    );
     if (ok) toast.success("Applications exported as CSV.");
     else toast.error("Export failed in this browser.");
   }
@@ -460,7 +472,11 @@ export default function Dashboard() {
       </section>
 
       {/* Tabs */}
-      <div className="mt-10 flex flex-wrap gap-1.5 rounded-2xl border border-line bg-surface p-1.5" role="tablist" aria-label="Dashboard sections">
+      <div
+        className="mt-10 flex flex-wrap gap-1.5 rounded-2xl border border-line bg-surface p-1.5"
+        role="tablist"
+        aria-label="Dashboard sections"
+      >
         {TABS.map((item) => (
           <button
             key={item.id}
@@ -479,7 +495,9 @@ export default function Dashboard() {
             <span className="hidden sm:inline">{item.label}</span>
             <span className="sm:hidden">{item.label.split(" ").pop()}</span>
             {item.id === "applications" && applications.data.length ? (
-              <span className="rounded-full bg-white/20 px-1.5 text-[0.66rem] font-bold">{applications.data.length}</span>
+              <span className="rounded-full bg-white/20 px-1.5 text-[0.66rem] font-bold">
+                {applications.data.length}
+              </span>
             ) : null}
           </button>
         ))}
@@ -717,7 +735,9 @@ export default function Dashboard() {
                   <JobCard
                     key={job.id}
                     job={job}
-                    applications={applications.data.filter((application) => application.job_id === job.id).length}
+                    applications={
+                      applications.data.filter((application) => application.job_id === job.id).length
+                    }
                     onEdit={(item) => {
                       setEditingJob(item);
                       setJobFormOpen(true);
@@ -843,7 +863,13 @@ export default function Dashboard() {
             ) : applications.error ? (
               <div className="rounded-2xl border border-amber-400/30 bg-amber-500/8 p-5 text-sm text-amber-100">
                 Could not load applications: {friendlyError(applications.error)}
-                <Button size="sm" variant="ghost" icon={RefreshCw} onClick={applications.refetch} className="ml-3">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={RefreshCw}
+                  onClick={applications.refetch}
+                  className="ml-3"
+                >
                   Retry
                 </Button>
               </div>

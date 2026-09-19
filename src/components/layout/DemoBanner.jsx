@@ -14,8 +14,7 @@ export default function DemoBanner() {
       <div className="container-page flex flex-wrap items-center justify-center gap-x-3 gap-y-2 py-2 text-center text-xs font-semibold text-amber-100">
         <span className="inline-flex items-center gap-2">
           <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
-          Sample data is on — the developers, projects and roles below are fictional and saving is
-          disabled.
+          Sample data is on — the developers, projects and roles below are fictional and saving is disabled.
         </span>
         <button
           type="button"

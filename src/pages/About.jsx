@@ -1,6 +1,26 @@
 import { useState } from "react";
 import usePageMeta from "../hooks/usePageMeta";
-import {Atom, Blocks, Check, Code2, Copy, Database, Heart, Mail, MapPin, MessageCircle, Palette, Rocket, Server, ShieldCheck, Sparkles, Target, Terminal, Users, Zap} from "lucide-react";
+import {
+  Atom,
+  Blocks,
+  Check,
+  Code2,
+  Copy,
+  Database,
+  Heart,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Palette,
+  Rocket,
+  Server,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Terminal,
+  Users,
+  Zap,
+} from "lucide-react";
 import { Github } from "../components/brand/BrandIcons";
 import PageHeading from "../components/layout/PageHeading";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -47,9 +67,21 @@ const STACK = [
 ];
 
 const ROADMAP = [
-  { icon: ShieldCheck, title: "Verified badge reviews", text: "A human-reviewed check for portfolios and identity." },
-  { icon: MessageCircle, title: "In-app messaging", text: "Threaded conversations with realtime Supabase channels." },
-  { icon: Rocket, title: "Featured talent plans", text: "Optional boosts for developers who want extra reach." },
+  {
+    icon: ShieldCheck,
+    title: "Verified badge reviews",
+    text: "A human-reviewed check for portfolios and identity.",
+  },
+  {
+    icon: MessageCircle,
+    title: "In-app messaging",
+    text: "Threaded conversations with realtime Supabase channels.",
+  },
+  {
+    icon: Rocket,
+    title: "Featured talent plans",
+    text: "Optional boosts for developers who want extra reach.",
+  },
   { icon: Code2, title: "Public API", text: "Let other tools query the developer directory." },
 ];
 
@@ -162,10 +194,7 @@ export default function About() {
 
       {/* Contact + support */}
       <section className="mt-10 grid gap-5 md:grid-cols-3">
-        <a
-          href={`mailto:${SITE.supportEmail}`}
-          className="card card-hover flex items-start gap-4 p-6"
-        >
+        <a href={`mailto:${SITE.supportEmail}`} className="card card-hover flex items-start gap-4 p-6">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white">
             <Mail className="h-5 w-5" />
           </span>
@@ -196,7 +225,12 @@ export default function About() {
           </div>
         </a>
 
-        <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="card card-hover flex items-start gap-4 p-6">
+        <a
+          href={SITE.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="card card-hover flex items-start gap-4 p-6"
+        >
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-line-strong bg-surface text-ink">
             <Github className="h-5 w-5" />
           </span>
@@ -328,7 +362,10 @@ export default function About() {
           </p>
           <ol className="mt-6 space-y-3">
             {SELF_HOST.map((item) => (
-              <li key={item.step} className="flex items-start gap-3 rounded-xl border border-line bg-bg-elev/50 p-3">
+              <li
+                key={item.step}
+                className="flex items-start gap-3 rounded-xl border border-line bg-bg-elev/50 p-3"
+              >
                 <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-brand-500/15 text-xs font-bold text-brand-300">
                   {item.step}
                 </span>
@@ -359,8 +396,8 @@ export default function About() {
                 Built by {SITE.createdBy} — improved by you.
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
-                Found a bug, want a feature, or hiring for something interesting? Support and
-                partnerships both start at the same inbox.
+                Found a bug, want a feature, or hiring for something interesting? Support and partnerships
+                both start at the same inbox.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <Button href={`mailto:${SITE.supportEmail}`} icon={Mail}>
@@ -378,7 +415,10 @@ export default function About() {
                 { icon: Users, label: "General enquiries", value: SITE.supportEmail },
                 { icon: Github, label: "Source", value: SITE.repo.replace("https://", "") },
               ].map((row) => (
-                <div key={row.label} className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4">
+                <div
+                  key={row.label}
+                  className="flex items-center gap-4 rounded-2xl border border-line bg-surface p-4"
+                >
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500/10 text-brand-300">
                     <row.icon className="h-4 w-4" />
                   </span>

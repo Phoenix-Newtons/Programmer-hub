@@ -87,7 +87,9 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
     setSaving(false);
 
     if (error) {
-      toast.error(friendlyError(error, isEditing ? "Could not save your changes." : "Could not publish the project."));
+      toast.error(
+        friendlyError(error, isEditing ? "Could not save your changes." : "Could not publish the project.")
+      );
       return;
     }
 
@@ -100,7 +102,12 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
   function toggleTag(tag) {
     const current = normalizeList(values.tags);
     const exists = current.some((item) => item.toLowerCase() === tag.toLowerCase());
-    update("tags", exists ? current.filter((item) => item.toLowerCase() !== tag.toLowerCase()).join(", ") : [...current, tag].join(", "));
+    update(
+      "tags",
+      exists
+        ? current.filter((item) => item.toLowerCase() !== tag.toLowerCase()).join(", ")
+        : [...current, tag].join(", ")
+    );
   }
 
   const activeTags = normalizeList(values.tags).map((tag) => tag.toLowerCase());
@@ -206,8 +213,8 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
 
         <p className="flex items-start gap-2 rounded-xl border border-line-strong bg-surface p-3 text-xs leading-relaxed text-muted">
           <Tags className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300" />
-          Projects are public. Anyone on the hub can open your repo and live links, so share work
-          you&rsquo;re proud of.
+          Projects are public. Anyone on the hub can open your repo and live links, so share work you&rsquo;re
+          proud of.
         </p>
       </form>
     </Modal>

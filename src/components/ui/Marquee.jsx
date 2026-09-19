@@ -20,10 +20,7 @@ export default function Marquee({
   if (reduceMotion) {
     return (
       <div className={cn("mask-fade-x relative overflow-hidden", className)}>
-        <ul
-          aria-label={label}
-          className="no-scrollbar flex gap-3 overflow-x-auto py-2"
-        >
+        <ul aria-label={label} className="no-scrollbar flex gap-3 overflow-x-auto py-2">
           {items.map((item) => (
             <li
               key={item}

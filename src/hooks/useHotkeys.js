@@ -9,7 +9,11 @@ import { useEffect } from "react";
  * Supported keys: any `event.key` value plus the `mod` modifier (⌘ on macOS,
  * Ctrl elsewhere) and `shift` / `alt`.
  */
-export default function useHotkeys(combo, handler, { enabled = true, ignoreInputs = true, preventDefault = true } = {}) {
+export default function useHotkeys(
+  combo,
+  handler,
+  { enabled = true, ignoreInputs = true, preventDefault = true } = {}
+) {
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return undefined;
 
@@ -26,7 +30,8 @@ export default function useHotkeys(combo, handler, { enabled = true, ignoreInput
       if (ignoreInputs) {
         const target = event.target;
         const tag = target?.tagName?.toLowerCase();
-        const editable = tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable;
+        const editable =
+          tag === "input" || tag === "textarea" || tag === "select" || target?.isContentEditable;
         if (editable) return;
       }
 

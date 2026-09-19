@@ -8,11 +8,7 @@ import { cn } from "../../lib/utils";
  */
 export default function Accordion({ items, className, defaultOpen = 0, allowMultiple = false }) {
   const [openIndexes, setOpenIndexes] = useState(
-    defaultOpen === null
-      ? []
-      : Array.isArray(defaultOpen)
-        ? defaultOpen
-        : [defaultOpen]
+    defaultOpen === null ? [] : Array.isArray(defaultOpen) ? defaultOpen : [defaultOpen]
   );
   const baseId = useId();
 
@@ -51,13 +47,7 @@ export default function Accordion({ items, className, defaultOpen = 0, allowMult
                 />
               </button>
             </h3>
-            <div
-              id={panelId}
-              role="region"
-              aria-labelledby={buttonId}
-              hidden={!open}
-              className="px-5 pb-5"
-            >
+            <div id={panelId} role="region" aria-labelledby={buttonId} hidden={!open} className="px-5 pb-5">
               <p className="text-sm leading-relaxed text-muted">{item.answer}</p>
             </div>
           </div>

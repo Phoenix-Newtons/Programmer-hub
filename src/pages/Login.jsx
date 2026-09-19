@@ -25,9 +25,21 @@ import { SITE } from "../lib/site";
 import { friendlyError } from "../lib/utils";
 
 const PERKS = [
-  { icon: Users, title: "A public developer profile", text: "Stack, rate, location, links and open-to-work status." },
-  { icon: FolderGit2, title: "A portfolio of shipped work", text: "Publish projects with repo and live URLs." },
-  { icon: BadgeCheck, title: "Direct client enquiries", text: "One-tap WhatsApp and email contact, no middleman." },
+  {
+    icon: Users,
+    title: "A public developer profile",
+    text: "Stack, rate, location, links and open-to-work status.",
+  },
+  {
+    icon: FolderGit2,
+    title: "A portfolio of shipped work",
+    text: "Publish projects with repo and live URLs.",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Direct client enquiries",
+    text: "One-tap WhatsApp and email contact, no middleman.",
+  },
 ];
 
 /** Password strength helper — purely advisory, Supabase enforces the rules. */
@@ -46,7 +58,8 @@ const STRENGTH = ["Too short", "Weak", "Okay", "Good", "Strong"];
 export default function Login() {
   usePageMeta({
     title: "Sign in",
-    description: "Sign in or create your Programmer's Hub account with Google or email and start publishing your profile.",
+    description:
+      "Sign in or create your Programmer's Hub account with Google or email and start publishing your profile.",
     noIndex: true,
   });
 
@@ -75,7 +88,8 @@ export default function Login() {
   function validate() {
     const next = {};
     if (!/^\S+@\S+\.\S+$/.test(values.email)) next.email = "Enter a valid email address.";
-    if (mode === "signin" && values.password.length < 6) next.password = "Password must be at least 6 characters.";
+    if (mode === "signin" && values.password.length < 6)
+      next.password = "Password must be at least 6 characters.";
     if (mode === "signup" && values.password.length < 8) {
       next.password = "Use at least 8 characters for a new account.";
     }
@@ -170,11 +184,16 @@ export default function Login() {
 
           <div className="my-6 flex items-center gap-3">
             <span className="h-px flex-1 bg-line" />
-            <span className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-muted">or use email</span>
+            <span className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-muted">
+              or use email
+            </span>
             <span className="h-px flex-1 bg-line" />
           </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-line bg-surface p-1" role="tablist">
+          <div
+            className="mb-5 grid grid-cols-2 gap-2 rounded-xl border border-line bg-surface p-1"
+            role="tablist"
+          >
             {[
               { id: "signin", label: "Sign in", icon: KeyRound },
               { id: "signup", label: "Sign up", icon: UserPlus },
@@ -330,7 +349,10 @@ export default function Login() {
 
             <div className="mt-8 rounded-2xl border border-line bg-surface p-4 text-xs leading-relaxed text-muted">
               Need help signing in? Email{" "}
-              <a href={`mailto:${SITE.supportEmail}`} className="font-semibold text-brand-300 hover:underline">
+              <a
+                href={`mailto:${SITE.supportEmail}`}
+                className="font-semibold text-brand-300 hover:underline"
+              >
                 {SITE.supportEmail}
               </a>{" "}
               or message us on WhatsApp.

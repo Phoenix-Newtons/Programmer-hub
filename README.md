@@ -12,21 +12,21 @@ Built with **React 19 + Vite + Tailwind CSS v4**, **lucide-react** icons and
 
 ## Features
 
-| Area | What you get |
-| --- | --- |
-| **Auth** | Real **Sign in with Google** (Supabase OAuth) plus email + password, password reset, password strength meter and protected routes |
-| **Search** | Command palette (**⌘K** / `Ctrl+K`) that fuzzy-searches developers, projects and roles at once, plus `/`-to-focus search on every directory |
-| **Developers** | Searchable, filterable, sortable directory with skill facets, "open to work" toggle, shareable filter URLs and pagination |
-| **Projects** | Featured builds from the hub + community submissions, with categories, tag links, edit/delete for owners and cover-image fallbacks |
-| **Hiring** | Post roles with budget, stack and level; open/closed status; browse and filter the board; apply with a short note (falls back to email if a write fails) |
-| **Applications** | Every applicant lands in your dashboard inbox — only readable by the role owner, with CSV export and one-click reply |
-| **Shortlist** | Private saved-developer list in `localStorage`, with CSV export, bulk email/WhatsApp and sort options |
-| **Dashboard** | Profile editor with avatar upload, completeness checklist, project + role management, and the applications inbox |
-| **Design** | Dark / light / system theme with no flash-of-wrong-theme, glassmorphism cards, aurora gradients, animated counters, toasts, responsive down to 320px |
-| **Accessibility** | Skip link, focus-trapped dialogs, live regions for results, arrow-key support in the palette, visible focus rings, reduced-motion support |
-| **Robustness** | Error boundaries per route, offline banner, retrying data layer, honest empty/error states and skeletons instead of spinners |
+| Area              | What you get                                                                                                                                                   |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**          | Real **Sign in with Google** (Supabase OAuth) plus email + password, password reset, password strength meter and protected routes                              |
+| **Search**        | Command palette (**⌘K** / `Ctrl+K`) that fuzzy-searches developers, projects and roles at once, plus `/`-to-focus search on every directory                    |
+| **Developers**    | Searchable, filterable, sortable directory with skill facets, "open to work" toggle, shareable filter URLs and pagination                                      |
+| **Projects**      | Featured builds from the hub + community submissions, with categories, tag links, edit/delete for owners and cover-image fallbacks                             |
+| **Hiring**        | Post roles with budget, stack and level; open/closed status; browse and filter the board; apply with a short note (falls back to email if a write fails)       |
+| **Applications**  | Every applicant lands in your dashboard inbox — only readable by the role owner, with CSV export and one-click reply                                           |
+| **Shortlist**     | Private saved-developer list in `localStorage`, with CSV export, bulk email/WhatsApp and sort options                                                          |
+| **Dashboard**     | Profile editor with avatar upload, completeness checklist, project + role management, and the applications inbox                                               |
+| **Design**        | Dark / light / system theme with no flash-of-wrong-theme, glassmorphism cards, aurora gradients, animated counters, toasts, responsive down to 320px           |
+| **Accessibility** | Skip link, focus-trapped dialogs, live regions for results, arrow-key support in the palette, visible focus rings, reduced-motion support                      |
+| **Robustness**    | Error boundaries per route, offline banner, retrying data layer, honest empty/error states and skeletons instead of spinners                                   |
 | **Offline-ready** | The production build ships a generated service worker: hashed assets are precached, HTML is network-first, and a dropped connection still serves the app shell |
-| **SEO** | Per-page titles, descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD, `robots.txt`, `sitemap.xml`, web app manifest |
+| **SEO**           | Per-page titles, descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD, `robots.txt`, `sitemap.xml`, web app manifest                                 |
 
 ---
 
@@ -43,11 +43,13 @@ npm run preview  # serve the production build
 
 ```bash
 npm run lint         # ESLint (flat config)
+npm run format:check # Prettier formatting gate
+npm run format       # …and the fixer
 npm run test         # Vitest unit + component tests
 npm run build        # production bundle + service worker (dist/)
 npm run check:build  # audits the artifacts in dist/ (sitemap, robots, sw.js)
 npm run smoke        # renders every route in jsdom, fails on render errors
-npm run verify       # lint + test + build + check:build + smoke
+npm run verify       # lint + format + test + build + check:build + smoke
 ```
 
 ---

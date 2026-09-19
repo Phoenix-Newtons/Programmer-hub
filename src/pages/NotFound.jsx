@@ -7,7 +7,8 @@ import { NAV_LINKS, SITE, TECH_MARQUEE } from "../lib/site";
 export default function NotFound() {
   usePageMeta({
     title: "Page not found (404)",
-    description: "That route doesn't exist on Programmer's Hub. Jump back into developers, projects or the hiring board.",
+    description:
+      "That route doesn't exist on Programmer's Hub. Jump back into developers, projects or the hiring board.",
     noIndex: true,
   });
 

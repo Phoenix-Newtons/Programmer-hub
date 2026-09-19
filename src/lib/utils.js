@@ -161,7 +161,9 @@ export function csvCell(value) {
 export function toCsv(rows, columns) {
   const head = columns.map((column) => csvCell(column.label ?? column.key)).join(",");
   const body = rows
-    .map((row) => columns.map((column) => csvCell(column.value ? column.value(row) : row[column.key])).join(","))
+    .map((row) =>
+      columns.map((column) => csvCell(column.value ? column.value(row) : row[column.key])).join(",")
+    )
     .join("\n");
   return `${head}\n${body}`;
 }
@@ -287,14 +289,12 @@ export function sortBy(list, selector, direction = "asc") {
 
 /** Case-insensitive containment check that also accepts array/haystack lists. */
 export function matchesQuery(query, ...values) {
-  const needle = String(query || "").trim().toLowerCase();
+  const needle = String(query || "")
+    .trim()
+    .toLowerCase();
   if (!needle) return true;
   return values.some((value) =>
-    (Array.isArray(value) ? value : [value])
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(needle)
+    (Array.isArray(value) ? value : [value]).filter(Boolean).join(" ").toLowerCase().includes(needle)
   );
 }
 

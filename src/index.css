@@ -40,29 +40,60 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 @keyframes blob {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -40px) scale(1.12); }
-  66% { transform: translate(-25px, 25px) scale(0.92); }
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -40px) scale(1.12);
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.92);
+  }
 }
 @keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 @keyframes rise {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes shimmer {
-  from { background-position: -200% 0; }
-  to { background-position: 200% 0; }
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
 }
 @keyframes pulse-ring {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.45; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
 }
 
 /* Semantic surfaces ------------------------------------------------ */
@@ -130,25 +161,39 @@
     background: rgb(129 140 248 / 0.35);
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     letter-spacing: -0.025em;
     text-wrap: balance;
   }
 
-  input, textarea, select, button {
+  input,
+  textarea,
+  select,
+  button {
     font: inherit;
   }
 
   /* Scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
   ::-webkit-scrollbar-thumb {
     background: var(--border-strong);
     border-radius: 999px;
     border: 3px solid transparent;
     background-clip: content-box;
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgb(129 140 248 / 0.6); background-clip: content-box; }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(129 140 248 / 0.6);
+    background-clip: content-box;
+  }
 
   :focus-visible {
     outline: 2px solid var(--color-brand-400);
@@ -165,7 +210,9 @@
     padding-inline: 1.25rem;
   }
   @media (min-width: 1024px) {
-    .container-page { padding-inline: 2rem; }
+    .container-page {
+      padding-inline: 2rem;
+    }
   }
 
   .glass {
@@ -182,7 +229,10 @@
     background: var(--surface);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+    transition:
+      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.35s ease,
+      border-color 0.35s ease;
   }
   .card-hover:hover {
     transform: translateY(-6px);
@@ -213,8 +263,13 @@
     white-space: nowrap;
     text-decoration: none;
   }
-  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
-  .btn:active:not(:disabled) { transform: scale(0.975); }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn:active:not(:disabled) {
+    transform: scale(0.975);
+  }
 
   .btn-sm {
     padding: 0.4rem 0.75rem;
@@ -255,13 +310,17 @@
     color: #04231a;
     box-shadow: 0 12px 30px -14px rgb(16 185 129 / 0.9);
   }
-  .btn-success:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-success:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
 
   .btn-danger {
     background: linear-gradient(120deg, #dc2626, #f43f5e);
     color: #fff;
   }
-  .btn-danger:hover:not(:disabled) { transform: translateY(-1px); }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
 
   /* Translucent brand button — used on top of gradients and dark headers. */
   .btn-soft {
@@ -294,7 +353,9 @@
     text-decoration: underline;
     text-underline-offset: 3px;
   }
-  .btn-link:hover:not(:disabled) { color: var(--color-brand-300); }
+  .btn-link:hover:not(:disabled) {
+    color: var(--color-brand-300);
+  }
 
   .field {
     width: 100%;
@@ -304,11 +365,19 @@
     color: var(--text);
     padding: 0.7rem 0.9rem;
     font-size: 0.92rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
   }
-  .field::placeholder { color: var(--muted); }
+  .field::placeholder {
+    color: var(--muted);
+  }
   .field:disabled,
-  .field[readonly] { opacity: 0.7; cursor: not-allowed; }
+  .field[readonly] {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 
   /* Clickable skill/tag chip (chips that do something on click). */
   .chip-btn {
@@ -337,19 +406,29 @@
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .field:focus {
     outline: none;
     border-color: rgb(129 140 248 / 0.75);
     box-shadow: 0 0 0 4px rgb(99 102 241 / 0.16);
   }
-  textarea.field { resize: vertical; min-height: 110px; }
+  textarea.field {
+    resize: vertical;
+    min-height: 110px;
+  }
   select.field {
     appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    background-image:
+      linear-gradient(45deg, transparent 50%, currentColor 50%),
       linear-gradient(135deg, currentColor 50%, transparent 50%);
-    background-position: calc(100% - 18px) calc(50% + 2px), calc(100% - 13px) calc(50% + 2px);
-    background-size: 5px 5px, 5px 5px;
+    background-position:
+      calc(100% - 18px) calc(50% + 2px),
+      calc(100% - 13px) calc(50% + 2px);
+    background-size:
+      5px 5px,
+      5px 5px;
     background-repeat: no-repeat;
     padding-right: 2.25rem;
     cursor: pointer;
@@ -421,7 +500,8 @@
   }
 
   .grid-lines {
-    background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
       linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
     background-size: 46px 46px;
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
@@ -433,11 +513,15 @@
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
   }
 
-  .text-balance { text-wrap: balance; }
+  .text-balance {
+    text-wrap: balance;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;

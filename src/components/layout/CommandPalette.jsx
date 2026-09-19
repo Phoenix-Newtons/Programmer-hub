@@ -40,12 +40,48 @@ const FIELD_WEIGHTS = {
 
 const STATIC_COMMANDS = [
   { id: "nav-home", group: "Go to", label: "Home", sublabel: "Landing page", icon: Home, to: "/" },
-  { id: "nav-developers", group: "Go to", label: "Developers", sublabel: "Browse the directory", icon: Users, to: "/developers" },
-  { id: "nav-projects", group: "Go to", label: "Projects", sublabel: "Proof of work", icon: FolderGit2, to: "/projects" },
-  { id: "nav-hiring", group: "Go to", label: "Hiring board", sublabel: "Open roles", icon: Briefcase, to: "/hiring" },
+  {
+    id: "nav-developers",
+    group: "Go to",
+    label: "Developers",
+    sublabel: "Browse the directory",
+    icon: Users,
+    to: "/developers",
+  },
+  {
+    id: "nav-projects",
+    group: "Go to",
+    label: "Projects",
+    sublabel: "Proof of work",
+    icon: FolderGit2,
+    to: "/projects",
+  },
+  {
+    id: "nav-hiring",
+    group: "Go to",
+    label: "Hiring board",
+    sublabel: "Open roles",
+    icon: Briefcase,
+    to: "/hiring",
+  },
   { id: "nav-about", group: "Go to", label: "About", sublabel: "Who built this", icon: Info, to: "/about" },
-  { id: "nav-dashboard", group: "Go to", label: "Dashboard", sublabel: "Your profile, projects and roles", icon: PencilRuler, to: "/dashboard", auth: true },
-  { id: "nav-shortlist", group: "Go to", label: "Shortlist", sublabel: "Developers you saved", icon: Compass, to: "/shortlist" },
+  {
+    id: "nav-dashboard",
+    group: "Go to",
+    label: "Dashboard",
+    sublabel: "Your profile, projects and roles",
+    icon: PencilRuler,
+    to: "/dashboard",
+    auth: true,
+  },
+  {
+    id: "nav-shortlist",
+    group: "Go to",
+    label: "Shortlist",
+    sublabel: "Developers you saved",
+    icon: Compass,
+    to: "/shortlist",
+  },
 ];
 
 /** Small helper: wraps a matched string so the query part is highlighted. */
@@ -148,12 +184,41 @@ export default function CommandPalette() {
         run: () => {
           setDemoMode(!demoMode);
           invalidateSearchIndex();
-          toast.success(demoMode ? "Sample data off — showing live data." : "Sample data on — explore the full UI.");
+          toast.success(
+            demoMode ? "Sample data off — showing live data." : "Sample data on — explore the full UI."
+          );
         },
       },
-      { id: "action-projects", group: "Actions", label: "Publish a project", sublabel: "Add shipped work", icon: FolderGit2, to: "/projects", keywords: "new project publish portfolio", auth: true },
-      { id: "action-role", group: "Actions", label: "Post a role", sublabel: "Hire on the hub", icon: Briefcase, to: "/hiring", keywords: "job post hire role", auth: true },
-      { id: "action-profile", group: "Actions", label: "Edit my profile", sublabel: "Stack, rate, links", icon: UserRound, to: "/dashboard", keywords: "profile edit account", auth: true },
+      {
+        id: "action-projects",
+        group: "Actions",
+        label: "Publish a project",
+        sublabel: "Add shipped work",
+        icon: FolderGit2,
+        to: "/projects",
+        keywords: "new project publish portfolio",
+        auth: true,
+      },
+      {
+        id: "action-role",
+        group: "Actions",
+        label: "Post a role",
+        sublabel: "Hire on the hub",
+        icon: Briefcase,
+        to: "/hiring",
+        keywords: "job post hire role",
+        auth: true,
+      },
+      {
+        id: "action-profile",
+        group: "Actions",
+        label: "Edit my profile",
+        sublabel: "Stack, rate, links",
+        icon: UserRound,
+        to: "/dashboard",
+        keywords: "profile edit account",
+        auth: true,
+      },
     ].filter((action) => !action.auth || isAuthenticated);
 
     if (isAuthenticated) {
@@ -221,7 +286,9 @@ export default function CommandPalette() {
       id: `project-${item.id}`,
       group: "Projects",
       label: item.title || "Untitled project",
-      sublabel: [item.author_name, normalizeList(item.tags).slice(0, 3).join(", ")].filter(Boolean).join(" • "),
+      sublabel: [item.author_name, normalizeList(item.tags).slice(0, 3).join(", ")]
+        .filter(Boolean)
+        .join(" • "),
       to: "/projects",
       icon: FolderGit2,
       keywords: normalizeList(item.tags).join(" "),
@@ -241,7 +308,9 @@ export default function CommandPalette() {
       id: `job-${item.id}`,
       group: "Roles",
       label: item.title || "Untitled role",
-      sublabel: [item.company, item.location, item.budget ? `${item.budget}` : ""].filter(Boolean).join(" • "),
+      sublabel: [item.company, item.location, item.budget ? `${item.budget}` : ""]
+        .filter(Boolean)
+        .join(" • "),
       to: "/hiring",
       icon: Briefcase,
       keywords: normalizeList(item.skills).join(" "),
@@ -266,7 +335,18 @@ export default function CommandPalette() {
       { group: "Go to", items: commandMatches },
       { group: "Actions", items: actionMatches },
     ].filter((section) => section.items.length);
-  }, [paletteQuery, index, recents, isAuthenticated, isDark, demoMode, displayName, signOut, toast, toggleTheme]);
+  }, [
+    paletteQuery,
+    index,
+    recents,
+    isAuthenticated,
+    isDark,
+    demoMode,
+    displayName,
+    signOut,
+    toast,
+    toggleTheme,
+  ]);
 
   const flat = useMemo(() => results.flatMap((section) => section.items), [results]);
 
@@ -309,7 +389,11 @@ export default function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[95] flex items-start justify-center p-3 pt-[8vh] sm:p-6 sm:pt-[12vh]">
-      <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={closePalette} aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+        onClick={closePalette}
+        aria-hidden="true"
+      />
 
       <div
         ref={panelRef}
@@ -341,7 +425,13 @@ export default function CommandPalette() {
           </kbd>
         </div>
 
-        <div id="palette-results" ref={listRef} role="listbox" aria-label="Results" className="flex-1 overflow-y-auto overscroll-contain p-2">
+        <div
+          id="palette-results"
+          ref={listRef}
+          role="listbox"
+          aria-label="Results"
+          className="flex-1 overflow-y-auto overscroll-contain p-2"
+        >
           {loading && !index ? (
             <p className="px-3 py-6 text-center text-sm text-muted">Searching the hub…</p>
           ) : null}
@@ -429,7 +519,9 @@ export default function CommandPalette() {
             {shortlist.count ? (
               <button
                 type="button"
-                onClick={() => runEntry({ id: "nav-shortlist", label: "Shortlist", to: "/shortlist", group: "Go to" })}
+                onClick={() =>
+                  runEntry({ id: "nav-shortlist", label: "Shortlist", to: "/shortlist", group: "Go to" })
+                }
                 className="font-semibold text-amber-200 hover:underline"
               >
                 {shortlist.count} shortlisted

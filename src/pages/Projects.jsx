@@ -187,7 +187,11 @@ export default function Projects() {
             hint="/"
           />
           <div className="flex flex-wrap items-center gap-2">
-            <SortSelect options={PROJECT_SORTS} value={values.sort} onChange={(sort) => setValues({ sort })} />
+            <SortSelect
+              options={PROJECT_SORTS}
+              value={values.sort}
+              onChange={(sort) => setValues({ sort })}
+            />
             {isFiltered ? (
               <Button
                 variant="ghost"
@@ -256,9 +260,7 @@ export default function Projects() {
                         }
                       : undefined
                   }
-                  onDelete={
-                    isAuthenticated && project.user_id === user?.id ? setPendingDelete : undefined
-                  }
+                  onDelete={isAuthenticated && project.user_id === user?.id ? setPendingDelete : undefined}
                   deleting={deletingId === project.id}
                 />
               ))}
@@ -330,9 +332,7 @@ export default function Projects() {
                           }
                         : undefined
                     }
-                    onDelete={
-                      isAuthenticated && project.user_id === user?.id ? setPendingDelete : undefined
-                    }
+                    onDelete={isAuthenticated && project.user_id === user?.id ? setPendingDelete : undefined}
                     deleting={deletingId === project.id}
                   />
                 ))}
@@ -398,8 +398,17 @@ export default function Projects() {
       {/* Delete confirmation */}
       {pendingDelete ? (
         <div className="fixed inset-0 z-[92] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setPendingDelete(null)} aria-hidden="true" />
-          <div role="alertdialog" aria-modal="true" aria-labelledby="delete-project-title" className="relative w-full max-w-md rounded-2xl border border-line-strong bg-surface-solid p-6 shadow-2xl">
+          <div
+            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+            onClick={() => setPendingDelete(null)}
+            aria-hidden="true"
+          />
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-project-title"
+            className="relative w-full max-w-md rounded-2xl border border-line-strong bg-surface-solid p-6 shadow-2xl"
+          >
             <h2 id="delete-project-title" className="text-lg font-bold text-ink">
               Delete “{pendingDelete.title}”?
             </h2>

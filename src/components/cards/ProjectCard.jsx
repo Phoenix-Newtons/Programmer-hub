@@ -54,7 +54,10 @@ export default function ProjectCard({
             <span className="font-mono text-4xl font-black text-white/25">&lt;/&gt;</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-slate-950/70 to-transparent"
+          aria-hidden="true"
+        />
 
         {project.featured ? (
           <div className="absolute left-4 top-4">
@@ -94,7 +97,9 @@ export default function ProjectCard({
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-lg font-bold leading-snug text-ink">{safeText(project.title, "Untitled project")}</h3>
+        <h3 className="text-lg font-bold leading-snug text-ink">
+          {safeText(project.title, "Untitled project")}
+        </h3>
 
         <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
           <UserRound className="h-3.5 w-3.5" aria-hidden="true" />

@@ -319,7 +319,10 @@ export default function Home() {
       {/* Promises + CTA */}
       <section className="container-page pb-8">
         <div className="relative overflow-hidden rounded-3xl border border-line-strong bg-gradient-to-br from-indigo-600/25 via-fuchsia-600/15 to-cyan-500/20 p-8 sm:p-14">
-          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl" aria-hidden="true" />
+          <div
+            className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl"
+            aria-hidden="true"
+          />
           <div className="relative grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white/80">
@@ -330,8 +333,8 @@ export default function Home() {
                 Your next client is one profile away.
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-white/75">
-                Join {SITE.name}, publish what you&rsquo;ve built and start receiving direct enquiries. Built by{" "}
-                {SITE.createdBy} for developers who&rsquo;d rather ship than apply.
+                Join {SITE.name}, publish what you&rsquo;ve built and start receiving direct enquiries. Built
+                by {SITE.createdBy} for developers who&rsquo;d rather ship than apply.
               </p>
 
               <dl className="mt-7 grid gap-3 sm:grid-cols-3">
@@ -358,7 +361,12 @@ export default function Home() {
             <div className="grid gap-3">
               {[
                 { icon: Github, label: "Browse the source", value: SITE.repo, href: SITE.repo },
-                { icon: Mail, label: "Support", value: SITE.supportEmail, href: `mailto:${SITE.supportEmail}` },
+                {
+                  icon: Mail,
+                  label: "Support",
+                  value: SITE.supportEmail,
+                  href: `mailto:${SITE.supportEmail}`,
+                },
                 {
                   icon: MessageCircle,
                   label: "WhatsApp",

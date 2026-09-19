@@ -42,9 +42,7 @@ export default function EmptyState({
         </span>
       ) : null}
       <Title className="text-lg font-bold text-ink">{title}</Title>
-      {description ? (
-        <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{description}</p>
-      ) : null}
+      {description ? <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{description}</p> : null}
       {action || secondary ? (
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           {action}

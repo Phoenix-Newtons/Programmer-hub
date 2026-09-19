@@ -51,10 +51,7 @@ export function seoFiles() {
       if (existsSync(robotsPath)) {
         writeFileSync(
           robotsPath,
-          readFileSync(robotsPath, "utf8").replace(
-            /^Sitemap: .*$/m,
-            `Sitemap: ${prefix}/sitemap.xml`
-          )
+          readFileSync(robotsPath, "utf8").replace(/^Sitemap: .*$/m, `Sitemap: ${prefix}/sitemap.xml`)
         );
       }
     },

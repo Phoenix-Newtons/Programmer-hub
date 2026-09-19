@@ -65,20 +65,17 @@ export function AuthProvider({ children }) {
     return { data, error };
   }, []);
 
-  const signUpWithPassword = useCallback(
-    async (email, password, meta = {}) => {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: meta,
-        },
-      });
-      return { data, error };
-    },
-    []
-  );
+  const signUpWithPassword = useCallback(async (email, password, meta = {}) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: meta,
+      },
+    });
+    return { data, error };
+  }, []);
 
   const resetPassword = useCallback(async (email) => {
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {

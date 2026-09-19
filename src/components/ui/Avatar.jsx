@@ -56,7 +56,10 @@ export default function Avatar({ name = "", src, size = "md", className, ring = 
           />
         ) : null}
         {showImage && loaded ? null : (
-          <span className={cn("relative drop-shadow-sm", !showImage && "opacity-100")} aria-hidden={showImage}>
+          <span
+            className={cn("relative drop-shadow-sm", !showImage && "opacity-100")}
+            aria-hidden={showImage}
+          >
             {initials(name)}
           </span>
         )}

@@ -78,7 +78,9 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   cn(
                     "rounded-xl px-3.5 py-2 text-sm font-semibold transition",
-                    isActive ? "bg-brand-500/15 text-brand-200" : "text-ink-soft hover:bg-white/5 hover:text-ink"
+                    isActive
+                      ? "bg-brand-500/15 text-brand-200"
+                      : "text-ink-soft hover:bg-white/5 hover:text-ink"
                   )
                 }
               >
@@ -260,7 +262,6 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-
     </header>
   );
 }

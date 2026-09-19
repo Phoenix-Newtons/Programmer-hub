@@ -11,7 +11,13 @@ import { cn, hostFromUrl, normalizeList, safeText, timeAgo, truncate, waLink } f
  * Developer summary card. Two layouts: the default grid card and a `compact`
  * row used on the shortlist page.
  */
-export default function DeveloperCard({ profile, featured = false, compact = false, skillLink = true, className }) {
+export default function DeveloperCard({
+  profile,
+  featured = false,
+  compact = false,
+  skillLink = true,
+  className,
+}) {
   const skills = normalizeList(profile.skills);
   const name = safeText(profile.name, "Unnamed developer");
   const whatsapp = profile.whatsapp ? waLink(profile.whatsapp) : "";
@@ -20,11 +26,21 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
   if (compact) {
     return (
       <article className={cn("card card-hover flex flex-wrap items-center gap-4 p-4", className)}>
-        <Avatar name={name} src={profile.avatar_url} size="md" status={profile.open_to_work ? "open" : null} />
+        <Avatar
+          name={name}
+          src={profile.avatar_url}
+          size="md"
+          status={profile.open_to_work ? "open" : null}
+        />
         <div className="min-w-0 flex-1">
-          <Link to={profileHref} className="flex items-center gap-1.5 text-base font-bold text-ink hover:text-brand-200">
+          <Link
+            to={profileHref}
+            className="flex items-center gap-1.5 text-base font-bold text-ink hover:text-brand-200"
+          >
             <span className="truncate">{name}</span>
-            {profile.verified ? <BadgeCheck className="h-4 w-4 shrink-0 text-brand-300" aria-label="Verified" /> : null}
+            {profile.verified ? (
+              <BadgeCheck className="h-4 w-4 shrink-0 text-brand-300" aria-label="Verified" />
+            ) : null}
           </Link>
           <p className="truncate text-sm text-muted">
             {safeText(profile.title, "Developer")} · {safeText(profile.location, "Remote")}
@@ -52,7 +68,12 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Avatar name={name} src={profile.avatar_url} size="lg" status={profile.open_to_work ? "open" : null} />
+          <Avatar
+            name={name}
+            src={profile.avatar_url}
+            size="lg"
+            status={profile.open_to_work ? "open" : null}
+          />
           <div className="min-w-0">
             <h3 className="flex items-center gap-1.5 text-base font-bold text-ink">
               <Link to={profileHref} className="truncate hover:text-brand-200">
@@ -62,7 +83,9 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
                 <BadgeCheck className="h-4 w-4 shrink-0 text-brand-300" aria-label="Verified profile" />
               ) : null}
             </h3>
-            <p className="truncate text-sm font-medium text-brand-300">{safeText(profile.title, "Developer")}</p>
+            <p className="truncate text-sm font-medium text-brand-300">
+              {safeText(profile.title, "Developer")}
+            </p>
             <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted">
               <MapPin className="h-3 w-3" aria-hidden="true" />
               {safeText(profile.location, "Remote")}
@@ -132,7 +155,11 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
           </a>
         ) : null}
         {profile.email ? (
-          <a href={`mailto:${profile.email}`} className="btn btn-ghost px-3 py-2 text-xs" title="Send an email">
+          <a
+            href={`mailto:${profile.email}`}
+            className="btn btn-ghost px-3 py-2 text-xs"
+            title="Send an email"
+          >
             <Mail className="h-3.5 w-3.5" aria-hidden="true" />
             Email
           </a>

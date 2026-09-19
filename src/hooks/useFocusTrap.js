@@ -14,7 +14,11 @@ const FOCUSABLE = [
  * Keeps keyboard focus inside a dialog while it is open, closes on Escape and
  * returns focus to whatever was focused before.
  */
-export default function useFocusTrap(ref, active = true, { onEscape, initialFocus, restoreFocus = true } = {}) {
+export default function useFocusTrap(
+  ref,
+  active = true,
+  { onEscape, initialFocus, restoreFocus = true } = {}
+) {
   const previouslyFocused = useRef(null);
 
   useEffect(() => {
@@ -24,7 +28,10 @@ export default function useFocusTrap(ref, active = true, { onEscape, initialFocu
 
     previouslyFocused.current = document.activeElement;
 
-    const focusables = () => Array.from(node.querySelectorAll(FOCUSABLE)).filter((el) => el.offsetParent !== null || el === document.activeElement);
+    const focusables = () =>
+      Array.from(node.querySelectorAll(FOCUSABLE)).filter(
+        (el) => el.offsetParent !== null || el === document.activeElement
+      );
 
     // Move focus in: an explicit target, the first field, or the container.
     const target =

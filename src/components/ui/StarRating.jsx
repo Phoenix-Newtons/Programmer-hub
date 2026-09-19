@@ -11,7 +11,11 @@ export default function StarRating({ rating, className, showValue = true, size =
       className={cn("inline-flex items-center gap-1 text-xs font-semibold text-amber-400", className)}
       title={value ? `Rated ${value.toFixed(1)} out of 5` : "Not rated yet"}
     >
-      <span className="flex" role="img" aria-label={value ? `Rated ${value.toFixed(1)} out of 5` : "Not rated yet"}>
+      <span
+        className="flex"
+        role="img"
+        aria-label={value ? `Rated ${value.toFixed(1)} out of 5` : "Not rated yet"}
+      >
         {Array.from({ length: full }).map((_, i) => (
           <Star key={`f${i}`} className={cn(iconSize, "fill-amber-400")} aria-hidden="true" />
         ))}

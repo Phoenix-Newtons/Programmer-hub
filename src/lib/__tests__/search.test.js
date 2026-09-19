@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { highlight, isSubsequence, normalizeText, rankItems, scoreItem, scoreToken, tokenize } from "../search";
+import {
+  highlight,
+  isSubsequence,
+  normalizeText,
+  rankItems,
+  scoreItem,
+  scoreToken,
+  tokenize,
+} from "../search";
 
 describe("normalizeText", () => {
   it("lowercases and strips accents", () => {

@@ -148,30 +148,36 @@ function auditA11y(html) {
   for (const heading of doc.querySelectorAll("h1, h2, h3, h4, h5, h6")) {
     const level = Number(heading.tagName[1]);
     if (previousLevel && level > previousLevel + 1) {
-      issues.push(`heading jump h${previousLevel} → h${level} at "${heading.textContent.trim().slice(0, 40)}"`);
+      issues.push(
+        `heading jump h${previousLevel} → h${level} at "${heading.textContent.trim().slice(0, 40)}"`
+      );
     }
     previousLevel = level;
   }
 
   for (const img of doc.querySelectorAll("img")) {
-    if (img.getAttribute("alt") === null) issues.push(`<img> without alt (${(img.getAttribute("src") || "").slice(0, 40)})`);
+    if (img.getAttribute("alt") === null)
+      issues.push(`<img> without alt (${(img.getAttribute("src") || "").slice(0, 40)})`);
   }
 
   const accessibleName = (element) =>
     Boolean(
       element.getAttribute("aria-label")?.trim() ||
-        element.getAttribute("title")?.trim() ||
-        element.textContent.trim() ||
-        (element.getAttribute("aria-labelledby") || "")
-          .split(/\s+/)
-          .some((id) => id && doc.getElementById(id)?.textContent.trim())
+      element.getAttribute("title")?.trim() ||
+      element.textContent.trim() ||
+      (element.getAttribute("aria-labelledby") || "")
+        .split(/\s+/)
+        .some((id) => id && doc.getElementById(id)?.textContent.trim())
     );
 
   for (const button of doc.querySelectorAll("button")) {
-    if (!accessibleName(button)) issues.push(`button without an accessible name (${button.className || "no class"})`);
+    if (!accessibleName(button))
+      issues.push(`button without an accessible name (${button.className || "no class"})`);
   }
 
-  const labelledControls = new Set([...doc.querySelectorAll("label[for]")].map((label) => label.getAttribute("for")));
+  const labelledControls = new Set(
+    [...doc.querySelectorAll("label[for]")].map((label) => label.getAttribute("for"))
+  );
   for (const control of doc.querySelectorAll("input, select, textarea")) {
     const type = (control.getAttribute("type") || "").toLowerCase();
     if (["hidden", "submit", "button", "reset", "image", "checkbox", "radio"].includes(type)) continue;
@@ -180,7 +186,8 @@ function auditA11y(html) {
       control.closest("label") ||
       control.getAttribute("aria-label") ||
       control.getAttribute("aria-labelledby");
-    if (!labelled) issues.push(`unlabelled <${control.tagName.toLowerCase()}${control.id ? ` id="${control.id}"` : ""}>`);
+    if (!labelled)
+      issues.push(`unlabelled <${control.tagName.toLowerCase()}${control.id ? ` id="${control.id}"` : ""}>`);
   }
 
   const ids = [...doc.querySelectorAll("[id]")].map((element) => element.id);
@@ -199,7 +206,8 @@ function auditA11y(html) {
 
   for (const link of doc.querySelectorAll('a[target="_blank"]')) {
     const rel = link.getAttribute("rel") || "";
-    if (!/noopener|noreferrer/.test(rel)) issues.push(`target=_blank without rel="noopener": ${link.getAttribute("href")}`);
+    if (!/noopener|noreferrer/.test(rel))
+      issues.push(`target=_blank without rel="noopener": ${link.getAttribute("href")}`);
   }
 
   return issues;
@@ -349,10 +357,14 @@ try {
     ["parseRate reads numbers", utils.parseRate("$1,200 / month") === 1200],
     ["normalizeList splits csv", utils.normalizeList("React, Node.js").length === 2],
     ["timeAgo handles past", utils.timeAgo(new Date(Date.now() - 3600_000)) === "1 hour ago"],
-    ["shortlist add", shortlistLib.addEntry({ ids: [], items: {} }, { id: "a", name: "Ada" }).ids.length === 1],
+    [
+      "shortlist add",
+      shortlistLib.addEntry({ ids: [], items: {} }, { id: "a", name: "Ada" }).ids.length === 1,
+    ],
     [
       "shortlist dedupe",
-      shortlistLib.addEntry(shortlistLib.addEntry({ ids: [], items: {} }, { id: "a" }), { id: "a" }).ids.length === 1,
+      shortlistLib.addEntry(shortlistLib.addEntry({ ids: [], items: {} }, { id: "a" }), { id: "a" }).ids
+        .length === 1,
     ],
     [
       "shortlist remove",

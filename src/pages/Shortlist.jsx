@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookmarkCheck, Briefcase as BriefcaseIcon, Download, Mail, MessageCircle, Trash2, Users } from "lucide-react";
+import {
+  BookmarkCheck,
+  Briefcase as BriefcaseIcon,
+  Download,
+  Mail,
+  MessageCircle,
+  Trash2,
+  Users,
+} from "lucide-react";
 
 import PageHeading from "../components/layout/PageHeading";
 import DeveloperCard from "../components/cards/DeveloperCard";
@@ -13,12 +21,7 @@ import { RowSkeleton } from "../components/ui/Skeletons";
 import useCollection from "../hooks/useCollection";
 import usePageMeta from "../hooks/usePageMeta";
 import { fetchProfiles } from "../lib/api";
-import {
-  clearShortlist,
-  getShortlistWhatsApps,
-  shortlistMailto,
-  useShortlist,
-} from "../lib/shortlist";
+import { clearShortlist, getShortlistWhatsApps, shortlistMailto, useShortlist } from "../lib/shortlist";
 import { useToast } from "../context/ToastContext";
 import { DEVELOPER_SORTS } from "../lib/site";
 import { downloadFile, normalizeList, parseRate, sortBy, toCsv } from "../lib/utils";
@@ -74,7 +77,11 @@ export default function Shortlist() {
       { key: "skills", label: "Skills", value: (row) => normalizeList(row.skills).join("; ") },
       { key: "profile", label: "Profile", value: (row) => `${window.location.origin}/developers/${row.id}` },
     ]);
-    const ok = downloadFile(`shortlist-${new Date().toISOString().slice(0, 10)}.csv`, csv, "text/csv;charset=utf-8");
+    const ok = downloadFile(
+      `shortlist-${new Date().toISOString().slice(0, 10)}.csv`,
+      csv,
+      "text/csv;charset=utf-8"
+    );
     if (ok) toast.success("Shortlist exported as CSV.");
     else toast.error("Export failed in this browser.");
   }
@@ -120,10 +127,15 @@ export default function Shortlist() {
             <Button variant="ghost" icon={Download} onClick={exportCsv}>
               Export CSV
             </Button>
-            <Button variant="ghost" icon={Trash2} className="text-rose-300" onClick={() => {
-              clearShortlist();
-              toast.info("Shortlist cleared.");
-            }}>
+            <Button
+              variant="ghost"
+              icon={Trash2}
+              className="text-rose-300"
+              onClick={() => {
+                clearShortlist();
+                toast.info("Shortlist cleared.");
+              }}
+            >
               Clear all
             </Button>
           </>
@@ -157,9 +169,7 @@ export default function Shortlist() {
             {loading && !shortlist.list.length ? (
               <RowSkeleton count={3} />
             ) : (
-              items.map((item) => (
-                <DeveloperCard key={item.id} profile={item} compact className="!p-4" />
-              ))
+              items.map((item) => <DeveloperCard key={item.id} profile={item} compact className="!p-4" />)
             )}
           </div>
 

@@ -66,7 +66,8 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
     const next = {};
     if (!values.title.trim()) next.title = "What role are you hiring for?";
     if (!values.company.trim()) next.company = "Add your company or project name.";
-    if (values.description.trim().length < 20) next.description = "Describe the role in a couple of sentences.";
+    if (values.description.trim().length < 20)
+      next.description = "Describe the role in a couple of sentences.";
     if (!/^\S+@\S+\.\S+$/.test(values.contact_email)) next.contact_email = "Enter a valid contact email.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -99,7 +100,9 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
     setSaving(false);
 
     if (error) {
-      toast.error(friendlyError(error, isEditing ? "Could not save this role." : "Could not post this role."));
+      toast.error(
+        friendlyError(error, isEditing ? "Could not save this role." : "Could not post this role.")
+      );
       return;
     }
 
@@ -155,14 +158,24 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
             onChange={(event) => update("location", event.target.value)}
             placeholder="Remote / Kampala"
           />
-          <Field as="select" label="Type" value={values.type} onChange={(event) => update("type", event.target.value)}>
+          <Field
+            as="select"
+            label="Type"
+            value={values.type}
+            onChange={(event) => update("type", event.target.value)}
+          >
             {JOB_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
             ))}
           </Field>
-          <Field as="select" label="Level" value={values.level} onChange={(event) => update("level", event.target.value)}>
+          <Field
+            as="select"
+            label="Level"
+            value={values.level}
+            onChange={(event) => update("level", event.target.value)}
+          >
             {EXPERIENCE_LEVELS.filter((level) => level !== "Any").map((level) => (
               <option key={level} value={level}>
                 {level}

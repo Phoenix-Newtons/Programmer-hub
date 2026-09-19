@@ -106,8 +106,7 @@ export default function Developers() {
     let pool = data.filter((profile) => {
       const skills = normalizeList(profile.skills);
       const matchesSkill =
-        values.skill === "All" ||
-        skills.some((skill) => skill.toLowerCase() === values.skill.toLowerCase());
+        values.skill === "All" || skills.some((skill) => skill.toLowerCase() === values.skill.toLowerCase());
       const matchesOpen = !openOnly || Boolean(profile.open_to_work);
       return matchesSkill && matchesOpen;
     });
@@ -195,7 +194,11 @@ export default function Developers() {
               Open to work
             </button>
 
-            <SortSelect options={DEVELOPER_SORTS} value={values.sort} onChange={(sort) => setValues({ sort })} />
+            <SortSelect
+              options={DEVELOPER_SORTS}
+              value={values.sort}
+              onChange={(sort) => setValues({ sort })}
+            />
 
             {isFiltered ? (
               <Button
@@ -266,10 +269,19 @@ export default function Developers() {
           <>
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {shown.map((profile) => (
-                <DeveloperCard key={profile.id} profile={profile} featured={profile.featured && !isFiltered} />
+                <DeveloperCard
+                  key={profile.id}
+                  profile={profile}
+                  featured={profile.featured && !isFiltered}
+                />
               ))}
             </div>
-            <LoadMore total={results.length} visible={shown.length} onMore={() => setVisible((v) => v + PAGE_SIZE)} step={PAGE_SIZE} />
+            <LoadMore
+              total={results.length}
+              visible={shown.length}
+              onMore={() => setVisible((v) => v + PAGE_SIZE)}
+              step={PAGE_SIZE}
+            />
           </>
         ) : (
           <EmptyState

@@ -42,8 +42,8 @@ export default class ErrorBoundary extends Component {
           </span>
           <h1 className="mt-5 text-2xl font-black tracking-tight text-ink">{title}</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            The rest of the app is fine — this screen hit an unexpected error while rendering. You can
-            try again, reload the page, or head back home.
+            The rest of the app is fine — this screen hit an unexpected error while rendering. You can try
+            again, reload the page, or head back home.
           </p>
 
           <pre className="mt-5 max-h-40 overflow-auto rounded-xl border border-line bg-bg-elev/60 p-3 text-left font-mono text-[0.72rem] leading-relaxed text-rose-200">

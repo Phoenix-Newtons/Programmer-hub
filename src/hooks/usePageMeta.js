@@ -28,9 +28,7 @@ export default function usePageMeta({ title, description, type = "website", imag
       return node;
     };
 
-    const desc =
-      description ||
-      (title ? `${title} on ${SITE.name}. ${SITE.tagline}` : SITE.description);
+    const desc = description || (title ? `${title} on ${SITE.name}. ${SITE.tagline}` : SITE.description);
 
     setTag('meta[name="description"]', () => {
       const meta = document.createElement("meta");
@@ -38,8 +36,7 @@ export default function usePageMeta({ title, description, type = "website", imag
       return meta;
     }).setAttribute("content", desc);
 
-    const canonicalHref =
-      typeof window === "undefined" ? "" : absoluteUrl(window.location.pathname);
+    const canonicalHref = typeof window === "undefined" ? "" : absoluteUrl(window.location.pathname);
     if (canonicalHref) {
       setTag('link[rel="canonical"]', () => {
         const link = document.createElement("link");

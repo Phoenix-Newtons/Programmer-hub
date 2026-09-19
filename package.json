@@ -14,10 +14,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "smoke": "node scripts/smoke.mjs",
-    "verify": "npm run lint && npm run test && npm run build && npm run check:build && npm run smoke",
+    "verify": "npm run lint && npm run format:check && npm run test && npm run build && npm run check:build && npm run smoke",
     "assets:brand": "python3 scripts/generate-brand-assets.py",
-    "format:check": "node -e \"console.log('Prettier is optional — add it with: npm i -D prettier')\"",
-    "check:build": "node scripts/check-build.mjs"
+    "format:check": "prettier --check .",
+    "check:build": "node scripts/check-build.mjs",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
@@ -35,6 +36,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^16.5.0",
     "jsdom": "^30.0.1",
+    "prettier": "^3.9.8",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2",
     "vitest": "^4.1.11"

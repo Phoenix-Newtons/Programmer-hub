@@ -1,0 +1,7 @@
+dist
+coverage
+node_modules
+legacy
+public
+docs/brand
+package-lock.json

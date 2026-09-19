@@ -68,10 +68,7 @@ describe("useCollection", () => {
       const index = fetched.length;
       fetched.push(index);
       return new Promise((resolve) =>
-        setTimeout(
-          () => resolve({ data: [{ id: `row-${index}` }], error: null }),
-          index === 0 ? 40 : 5
-        )
+        setTimeout(() => resolve({ data: [{ id: `row-${index}` }], error: null }), index === 0 ? 40 : 5)
       );
     };
 

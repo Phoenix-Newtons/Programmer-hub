@@ -43,7 +43,8 @@ export default function ApplyModal({ open, onClose, job }) {
       `${values.message}\n\n— ${values.name}\n${values.email}${values.portfolio ? `\n${values.portfolio}` : ""}`
     );
     const recipient = job?.contact_email || "";
-    if (typeof window !== "undefined") window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+    if (typeof window !== "undefined")
+      window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
     toast.warning(reason);
     onClose?.();
   }

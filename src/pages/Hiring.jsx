@@ -71,9 +71,21 @@ const REASONS = [
 ];
 
 const STEPS = [
-  { icon: Building2, title: "Post the role", text: "Add the stack, budget, seniority and where applications should land." },
-  { icon: Users, title: "Get applications", text: "Developers apply from the board with a short note and portfolio link — you read them in your dashboard." },
-  { icon: CheckCircle2, title: "Hire directly", text: "Shortlist, message and agree terms — no platform middleman." },
+  {
+    icon: Building2,
+    title: "Post the role",
+    text: "Add the stack, budget, seniority and where applications should land.",
+  },
+  {
+    icon: Users,
+    title: "Get applications",
+    text: "Developers apply from the board with a short note and portfolio link — you read them in your dashboard.",
+  },
+  {
+    icon: CheckCircle2,
+    title: "Hire directly",
+    text: "Shortlist, message and agree terms — no platform middleman.",
+  },
 ];
 
 const FAQS = [
@@ -84,7 +96,8 @@ const FAQS = [
   },
   {
     question: "Do you take a commission on hires?",
-    answer: "No. The hub is a discovery layer — you and the developer agree on rates and payment terms directly.",
+    answer:
+      "No. The hub is a discovery layer — you and the developer agree on rates and payment terms directly.",
   },
   {
     question: "How are developers verified?",
@@ -156,10 +169,7 @@ export default function Hiring() {
     },
   });
 
-  const openToWork = useMemo(
-    () => profiles.filter((profile) => profile.open_to_work).length,
-    [profiles]
-  );
+  const openToWork = useMemo(() => profiles.filter((profile) => profile.open_to_work).length, [profiles]);
 
   const typeCounts = useMemo(() => {
     const counts = { All: data.length };
@@ -420,7 +430,12 @@ export default function Hiring() {
                   />
                 ))}
               </div>
-              <LoadMore total={results.length} visible={shown.length} onMore={() => setVisible((v) => v + PAGE_SIZE)} step={PAGE_SIZE} />
+              <LoadMore
+                total={results.length}
+                visible={shown.length}
+                onMore={() => setVisible((v) => v + PAGE_SIZE)}
+                step={PAGE_SIZE}
+              />
             </>
           ) : (
             <EmptyState
@@ -484,10 +499,7 @@ export default function Hiring() {
             <Button to="/projects" variant="ghost" icon={Rocket}>
               Publish a project
             </Button>
-            <Link
-              to="/developers?open=1"
-              className="btn btn-subtle text-sm"
-            >
+            <Link to="/developers?open=1" className="btn btn-subtle text-sm">
               See who else is available
             </Link>
           </div>
@@ -549,8 +561,8 @@ export default function Hiring() {
               Delete “{pendingDelete.title}”?
             </h2>
             <p className="mt-2 text-sm text-muted">
-              The role and its applications disappear from the board. Consider marking it Closed instead if you
-              want to keep the record.
+              The role and its applications disappear from the board. Consider marking it Closed instead if
+              you want to keep the record.
             </p>
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="ghost" onClick={() => setPendingDelete(null)}>

@@ -7,7 +7,15 @@ import { cn } from "../../lib/utils";
  * Page header used by every routed page: breadcrumbs, eyebrow, title,
  * description and a slot for actions on the right.
  */
-export default function PageHeading({ eyebrow, icon: Icon, title, description, children, className, breadcrumbs = [] }) {
+export default function PageHeading({
+  eyebrow,
+  icon: Icon,
+  title,
+  description,
+  children,
+  className,
+  breadcrumbs = [],
+}) {
   return (
     <header className={cn("", className)}>
       {breadcrumbs.length ? (

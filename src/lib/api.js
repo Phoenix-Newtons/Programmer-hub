@@ -46,9 +46,7 @@ export async function fetchProfiles({ ids, limit } = {}) {
     if (!ids.length) return { data: [], error: null };
     if (isDemoMode()) return demoResult(DEMO_PROFILES.filter((row) => ids.includes(row.id)));
 
-    const { data, error } = await withRetry(() =>
-      supabase.from("profiles").select("*").in("id", ids)
-    );
+    const { data, error } = await withRetry(() => supabase.from("profiles").select("*").in("id", ids));
     return { data: data || [], error };
   }
 
@@ -79,15 +77,14 @@ export async function fetchProfile(id) {
 export async function saveProfile(profile) {
   if (isDemoMode()) return readOnlyError();
   const payload = { ...profile, updated_at: new Date().toISOString() };
-  const { data, error } = await withRetry(() =>
-    supabase.from("profiles").upsert(payload).select().single()
-  );
+  const { data, error } = await withRetry(() => supabase.from("profiles").upsert(payload).select().single());
   if (!error) bumpData();
   return { data, error };
 }
 
 export async function uploadAvatar(userId, file) {
-  if (isDemoMode()) return { url: null, error: new Error("Sample data is read-only — uploads are disabled.") };
+  if (isDemoMode())
+    return { url: null, error: new Error("Sample data is read-only — uploads are disabled.") };
   const ext = (file.name.split(".").pop() || "png").toLowerCase();
   const path = `${userId}/avatar-${Date.now()}.${ext}`;
   const { error: uploadError } = await supabase.storage
@@ -174,7 +171,9 @@ export async function createJob(job) {
 
 export async function updateJob(id, job) {
   if (isDemoMode()) return readOnlyError();
-  const { data, error } = await withRetry(() => supabase.from("jobs").update(job).eq("id", id).select().single());
+  const { data, error } = await withRetry(() =>
+    supabase.from("jobs").update(job).eq("id", id).select().single()
+  );
   if (!error) bumpData();
   return { data, error };
 }

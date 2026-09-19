@@ -1,4 +1,14 @@
-import { Banknote, Building2, CalendarClock, CheckCircle2, Clock, MapPin, Pencil, Send, Trash2 } from "lucide-react";
+import {
+  Banknote,
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  Clock,
+  MapPin,
+  Pencil,
+  Send,
+  Trash2,
+} from "lucide-react";
 import Badge from "../ui/Badge";
 import Button from "../ui/Button";
 import { cn, normalizeList, safeText, timeAgo, truncate } from "../../lib/utils";

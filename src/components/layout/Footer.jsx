@@ -129,13 +129,31 @@ export default function Footer() {
               <span className="font-semibold text-ink">{SITE.createdBy}</span>. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
-              <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="transition hover:text-ink" aria-label="GitHub">
+              <a
+                href={SITE.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-ink"
+                aria-label="GitHub"
+              >
                 <Github className="h-4 w-4" aria-hidden="true" />
               </a>
-              <a href={SITE.twitter} target="_blank" rel="noopener noreferrer" className="transition hover:text-ink" aria-label="X">
+              <a
+                href={SITE.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-ink"
+                aria-label="X"
+              >
                 <Twitter className="h-4 w-4" aria-hidden="true" />
               </a>
-              <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="transition hover:text-ink" aria-label="LinkedIn">
+              <a
+                href={SITE.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="transition hover:text-ink"
+                aria-label="LinkedIn"
+              >
                 <Linkedin className="h-4 w-4" aria-hidden="true" />
               </a>
               <a

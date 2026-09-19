@@ -88,9 +88,9 @@ describe("Developers directory", () => {
 
   it("saves a developer to the shortlist", async () => {
     const view = await renderWithProviders(<Developers />, { route: "/developers" });
-    const saveButton = view.queryAll("button").find(
-      (button) => button.getAttribute("aria-label") === "Save to shortlist"
-    );
+    const saveButton = view
+      .queryAll("button")
+      .find((button) => button.getAttribute("aria-label") === "Save to shortlist");
 
     expect(saveButton).toBeTruthy();
     await view.click(saveButton);
@@ -135,7 +135,12 @@ describe("shortlist page", () => {
       error: null,
     });
 
-    saveToShortlist({ id: "dev-1", name: "Ada Nakato", title: "Full-stack React engineer", email: "ada@example.com" });
+    saveToShortlist({
+      id: "dev-1",
+      name: "Ada Nakato",
+      title: "Full-stack React engineer",
+      email: "ada@example.com",
+    });
 
     const view = await renderWithProviders(<Shortlist />, { route: "/shortlist" });
     const text = view.text();

@@ -1,6 +1,22 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import useDocumentTitle from "../hooks/useDocumentTitle";
-import {ArrowRight, Blocks, Code2, Cpu, FolderGit2, Layers, Mail, MessageCircle, Rocket, SearchCheck, ShieldCheck, Sparkles, Users, Wand2} from "lucide-react";
+import {
+  ArrowRight,
+  Blocks,
+  Code2,
+  Cpu,
+  FolderGit2,
+  Layers,
+  Mail,
+  MessageCircle,
+  Rocket,
+  SearchCheck,
+  ShieldCheck,
+  Sparkles,
+  Users,
+  Wand2,
+} from "lucide-react";
+
 import { Github } from "../components/brand/BrandIcons";
 import Hero from "../components/home/Hero";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -12,10 +28,13 @@ import SetupNotice from "../components/ui/SetupNotice";
 import Button from "../components/ui/Button";
 import Marquee from "../components/ui/Marquee";
 import AnimatedCounter from "../components/ui/AnimatedCounter";
+import ShareMenu from "../components/ui/ShareMenu";
 import { GridSkeleton } from "../components/ui/Skeletons";
 import useCollection from "../hooks/useCollection";
+import usePageMeta from "../hooks/usePageMeta";
 import { fetchJobs, fetchProfiles, fetchProjects } from "../lib/api";
-import { TECH_MARQUEE, SITE } from "../lib/site";
+import { PLATFORM_PROMISES, SITE, TECH_MARQUEE } from "../lib/site";
+import { pluralize } from "../lib/utils";
 
 const STEPS = [
   {
@@ -39,7 +58,7 @@ const FEATURES = [
   {
     icon: SearchCheck,
     title: "Skill-first search",
-    text: "Filter the whole marketplace by stack, title or location and find the exact person you need.",
+    text: "Fuzzy search across names, stacks, cities and bios — plus filters you can share as a URL.",
   },
   {
     icon: ShieldCheck,
@@ -59,7 +78,7 @@ const FEATURES = [
   {
     icon: Blocks,
     title: "Modular by design",
-    text: "React + Vite + Tailwind with lucide icons — every screen is a component you can move around.",
+    text: "React 19 + Vite + Tailwind v4 with lucide icons — every screen is a component you can move around.",
   },
   {
     icon: Users,
@@ -69,24 +88,44 @@ const FEATURES = [
 ];
 
 export default function Home() {
-  useDocumentTitle("Find talent. Ship projects. Get hired.");
   const profiles = useCollection(fetchProfiles);
   const projects = useCollection(fetchProjects);
   const jobs = useCollection(fetchJobs);
 
-  const featuredDevs = profiles.data.slice(0, 3);
+  usePageMeta({
+    description: SITE.description,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: SITE.name,
+      description: SITE.description,
+      url: SITE.repo,
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${SITE.repo}/developers?q={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+  });
+
+  const featuredDevs = useMemo(
+    () => [...profiles.data].sort((a, b) => Number(b.featured || 0) - Number(a.featured || 0)).slice(0, 3),
+    [profiles.data]
+  );
   const featuredProjects = projects.data.slice(0, 3);
   const latestJobs = jobs.data.slice(0, 3);
 
   const stats = [
-    { label: "Developers", value: <AnimatedCounter value={profiles.data.length} />, suffix: "" },
-    { label: "Projects", value: <AnimatedCounter value={projects.data.length} />, suffix: "" },
-    { label: "Open roles", value: <AnimatedCounter value={jobs.data.length} />, suffix: "" },
+    { label: "Developers", value: <AnimatedCounter value={profiles.data.length} /> },
+    { label: "Projects", value: <AnimatedCounter value={projects.data.length} /> },
+    { label: "Open roles", value: <AnimatedCounter value={jobs.data.length} /> },
   ];
+
+  const openRoles = jobs.data.filter((job) => (job.status || "open") === "open").length;
 
   return (
     <>
-      <Hero stats={stats} />
+      <Hero stats={stats} developers={profiles.data.length} roles={openRoles} />
 
       {/* Tech marquee */}
       <section className="border-y border-line bg-bg-elev/30 py-4">
@@ -108,7 +147,7 @@ export default function Home() {
             <div key={step.title} className="card card-hover relative p-6">
               <div className="flex items-center justify-between">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-[0_10px_30px_-12px_rgb(99_102_241/0.9)]">
-                  <step.icon className="h-5 w-5" />
+                  <step.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="font-mono text-3xl font-black text-line-strong">0{index + 1}</span>
               </div>
@@ -116,6 +155,12 @@ export default function Home() {
               <p className="mt-2 text-sm leading-relaxed text-muted">{step.text}</p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Button to="/dashboard" icon={Rocket} size="lg">
+            Start my profile — it&rsquo;s free
+          </Button>
         </div>
       </section>
 
@@ -220,7 +265,7 @@ export default function Home() {
             {FEATURES.map((feature) => (
               <div key={feature.title} className="card card-hover p-6">
                 <span className="grid h-11 w-11 place-items-center rounded-xl border border-line-strong bg-brand-500/10 text-brand-300">
-                  <feature.icon className="h-5 w-5" />
+                  <feature.icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <h3 className="mt-4 text-base font-bold text-ink">{feature.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{feature.text}</p>
@@ -252,7 +297,7 @@ export default function Home() {
           ) : latestJobs.length ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {latestJobs.map((job) => (
-                <JobCard key={job.id} job={job} onApply={() => window.open(`mailto:${job.contact_email}`)} />
+                <JobCard key={job.id} job={job} />
               ))}
             </div>
           ) : (
@@ -271,31 +316,41 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Promises + CTA */}
       <section className="container-page pb-8">
         <div className="relative overflow-hidden rounded-3xl border border-line-strong bg-gradient-to-br from-indigo-600/25 via-fuchsia-600/15 to-cyan-500/20 p-8 sm:p-14">
-          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl" />
-          <div className="relative grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-fuchsia-500/25 blur-3xl" aria-hidden="true" />
+          <div className="relative grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:items-center">
             <div>
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-white/80">
-                <Code2 className="h-3.5 w-3.5" />
+                <Code2 className="h-3.5 w-3.5" aria-hidden="true" />
                 Ready when you are
               </span>
               <h2 className="mt-5 text-3xl font-black tracking-tight text-white sm:text-4xl">
                 Your next client is one profile away.
               </h2>
               <p className="mt-4 max-w-xl text-base leading-relaxed text-white/75">
-                Join {SITE.name}, publish what you&rsquo;ve built and start receiving direct enquiries.
-                Built by {SITE.createdBy} for developers who&rsquo;d rather ship than apply.
+                Join {SITE.name}, publish what you&rsquo;ve built and start receiving direct enquiries. Built by{" "}
+                {SITE.createdBy} for developers who&rsquo;d rather ship than apply.
               </p>
+
+              <dl className="mt-7 grid gap-3 sm:grid-cols-3">
+                {PLATFORM_PROMISES.map((promise) => (
+                  <div key={promise.title} className="rounded-2xl border border-white/15 bg-white/5 p-4">
+                    <dt className="text-sm font-bold text-white">{promise.title}</dt>
+                    <dd className="mt-1 text-xs leading-relaxed text-white/70">{promise.text}</dd>
+                  </div>
+                ))}
+              </dl>
+
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link to="/dashboard" className="btn btn-primary btn-lg">
-                  <Rocket className="h-4 w-4" />
+                  <Rocket className="h-4 w-4" aria-hidden="true" />
                   Build my profile
                 </Link>
                 <Link to="/about" className="btn btn-ghost btn-lg">
                   About the hub
-                  <ArrowRight className="h-4 w-4" />
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
             </div>
@@ -304,7 +359,12 @@ export default function Home() {
               {[
                 { icon: Github, label: "Browse the source", value: SITE.repo, href: SITE.repo },
                 { icon: Mail, label: "Support", value: SITE.supportEmail, href: `mailto:${SITE.supportEmail}` },
-                { icon: MessageCircle, label: "WhatsApp", value: `+${SITE.whatsapp}`, href: `https://wa.me/${SITE.whatsapp}` },
+                {
+                  icon: MessageCircle,
+                  label: "WhatsApp",
+                  value: `+${SITE.whatsapp}`,
+                  href: `https://wa.me/${SITE.whatsapp}`,
+                },
               ].map((item) => (
                 <a
                   key={item.label}
@@ -314,7 +374,7 @@ export default function Home() {
                   className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-4 transition hover:border-white/35 hover:bg-white/10"
                 >
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="h-4 w-4" aria-hidden="true" />
                   </span>
                   <span className="min-w-0">
                     <span className="block text-xs font-semibold uppercase tracking-wider text-white/60">
@@ -324,9 +384,23 @@ export default function Home() {
                   </span>
                 </a>
               ))}
+
+              <div className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/5 p-4">
+                <span className="text-sm font-semibold text-white/85">Spread the word</span>
+                <ShareMenu
+                  compact
+                  title="Programmer's Hub — Find talent. Ship projects. Get hired."
+                  text="A developer marketplace: publish real projects, get contacted directly."
+                />
+              </div>
             </div>
           </div>
         </div>
+
+        <p className="mt-6 text-center text-xs text-muted">
+          {pluralize(profiles.data.length, "profile")} · {pluralize(projects.data.length, "project")} ·{" "}
+          {pluralize(openRoles, "open role")} — updated live from Supabase.
+        </p>
       </section>
     </>
   );

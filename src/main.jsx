@@ -7,7 +7,9 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import "./index.css";
 
-createRoot(document.getElementById("root")).render(
+const container = document.getElementById("root");
+
+createRoot(container).render(
   <StrictMode>
     <ThemeProvider>
       <BrowserRouter>
@@ -20,3 +22,12 @@ createRoot(document.getElementById("root")).render(
     </ThemeProvider>
   </StrictMode>
 );
+
+// Reassure the console that the app booted (useful when debugging deployments).
+if (import.meta.env.DEV) {
+  console.info(
+    `%c${"Programmer's Hub"}%c dev build ready — press ⌘K to search the hub.`,
+    "font-weight:bold;color:#818cf8",
+    "color:inherit"
+  );
+}

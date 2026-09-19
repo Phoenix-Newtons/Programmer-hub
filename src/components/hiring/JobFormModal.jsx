@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Briefcase, Send, Type } from "lucide-react";
+import { Briefcase, Send } from "lucide-react";
+
 import Modal from "../ui/Modal";
 import Field from "../ui/Field";
 import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { createJob } from "../../lib/api";
-import { JOB_TYPES, EXPERIENCE_LEVELS } from "../../lib/site";
-import { friendlyError } from "../../lib/utils";
+import { createJob, updateJob } from "../../lib/api";
+import { EXPERIENCE_LEVELS, JOB_TYPES } from "../../lib/site";
+import { friendlyError, normalizeList } from "../../lib/utils";
 
 const EMPTY = {
   title: "",
@@ -19,24 +20,42 @@ const EMPTY = {
   skills: "",
   description: "",
   contact_email: "",
+  status: "open",
 };
 
-export default function JobFormModal({ open, onClose, onSaved }) {
+/** Post a new role or edit an existing one (same form, different action). */
+export default function JobFormModal({ open, onClose, onSaved, job }) {
   const { user, displayName, profile } = useAuth();
   const toast = useToast();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const isEditing = Boolean(job?.id);
 
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    setValues({
-      ...EMPTY,
-      company: profile?.company || profile?.name || displayName || "",
-      contact_email: user?.email || "",
-    });
-  }, [open, user?.email, displayName, profile]);
+    setValues(
+      isEditing
+        ? {
+            title: job.title || "",
+            company: job.company || "",
+            location: job.location || "Remote",
+            type: job.type || "Contract",
+            level: job.level || "Mid-level",
+            budget: job.budget || "",
+            skills: normalizeList(job.skills).join(", "),
+            description: job.description || "",
+            contact_email: job.contact_email || "",
+            status: job.status || "open",
+          }
+        : {
+            ...EMPTY,
+            company: profile?.company || profile?.name || displayName || "",
+            contact_email: user?.email || "",
+          }
+    );
+  }, [open, isEditing, job, user?.email, displayName, profile]);
 
   function update(key, value) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -47,7 +66,7 @@ export default function JobFormModal({ open, onClose, onSaved }) {
     const next = {};
     if (!values.title.trim()) next.title = "What role are you hiring for?";
     if (!values.company.trim()) next.company = "Add your company or project name.";
-    if (!values.description.trim()) next.description = "Describe the role and what success looks like.";
+    if (values.description.trim().length < 20) next.description = "Describe the role in a couple of sentences.";
     if (!/^\S+@\S+\.\S+$/.test(values.contact_email)) next.contact_email = "Enter a valid contact email.";
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -70,23 +89,21 @@ export default function JobFormModal({ open, onClose, onSaved }) {
       type: values.type,
       level: values.level,
       budget: values.budget.trim() || null,
-      skills: values.skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean),
+      skills: normalizeList(values.skills),
       description: values.description.trim(),
       contact_email: values.contact_email.trim(),
+      status: values.status,
     };
 
-    const { error } = await createJob(payload);
+    const { error } = isEditing ? await updateJob(job.id, payload) : await createJob(payload);
     setSaving(false);
 
     if (error) {
-      toast.error(friendlyError(error, "Could not post this role."));
+      toast.error(friendlyError(error, isEditing ? "Could not save this role." : "Could not post this role."));
       return;
     }
 
-    toast.success("Role posted. Developers can apply right away.");
+    toast.success(isEditing ? "Role updated." : "Role posted. Developers can apply right away.");
     onSaved?.();
     onClose?.();
   }
@@ -95,8 +112,8 @@ export default function JobFormModal({ open, onClose, onSaved }) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Post a role"
-      description="Reach every developer on the hub. Roles stay live until you delete them."
+      title={isEditing ? "Edit role" : "Post a role"}
+      description="Reach every developer on the hub. Roles stay live until you close or delete them."
       icon={Briefcase}
       size="lg"
       footer={
@@ -105,7 +122,7 @@ export default function JobFormModal({ open, onClose, onSaved }) {
             Cancel
           </Button>
           <Button type="submit" form="job-form" loading={saving} icon={Send}>
-            Post role
+            {isEditing ? "Save changes" : "Post role"}
           </Button>
         </>
       }
@@ -119,6 +136,7 @@ export default function JobFormModal({ open, onClose, onSaved }) {
             onChange={(event) => update("title", event.target.value)}
             error={errors.title}
             placeholder="Senior React Engineer"
+            data-autofocus
           />
           <Field
             label="Company / project"
@@ -130,36 +148,36 @@ export default function JobFormModal({ open, onClose, onSaved }) {
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field
             label="Location"
             value={values.location}
             onChange={(event) => update("location", event.target.value)}
             placeholder="Remote / Kampala"
           />
-          <Field
-            as="select"
-            label="Type"
-            value={values.type}
-            onChange={(event) => update("type", event.target.value)}
-          >
+          <Field as="select" label="Type" value={values.type} onChange={(event) => update("type", event.target.value)}>
             {JOB_TYPES.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
             ))}
           </Field>
-          <Field
-            as="select"
-            label="Level"
-            value={values.level}
-            onChange={(event) => update("level", event.target.value)}
-          >
+          <Field as="select" label="Level" value={values.level} onChange={(event) => update("level", event.target.value)}>
             {EXPERIENCE_LEVELS.filter((level) => level !== "Any").map((level) => (
               <option key={level} value={level}>
                 {level}
               </option>
             ))}
+          </Field>
+          <Field
+            as="select"
+            label="Status"
+            hint={values.status === "closed" ? "hidden from apply" : "accepting applications"}
+            value={values.status}
+            onChange={(event) => update("status", event.target.value)}
+          >
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
           </Field>
         </div>
 

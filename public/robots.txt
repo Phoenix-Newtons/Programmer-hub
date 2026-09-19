@@ -1,2 +1,10 @@
+# Programmer's Hub — https://github.com/Phoenix-Newtons/Programmer-hub
 User-agent: *
 Allow: /
+
+# Private, per-visitor pages.
+Disallow: /dashboard
+Disallow: /login
+Disallow: /shortlist
+
+Sitemap: /sitemap.xml

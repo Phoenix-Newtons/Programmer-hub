@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#818cf8" />
+      <stop offset="52%" stop-color="#a855f7" />
+      <stop offset="100%" stop-color="#22d3ee" />
+    </linearGradient>
+    <radialGradient id="glowA" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glowB" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#070b18" />
+  <circle cx="150" cy="80" r="360" fill="url(#glowA)" />
+  <circle cx="1080" cy="120" r="330" fill="url(#glowB)" />
+  <circle cx="980" cy="580" r="300" fill="url(#glowA)" />
+
+  <rect x="0" y="0" width="1200" height="630" fill="none" stroke="#818cf8" stroke-opacity="0.18" stroke-width="4" />
+
+  <rect x="88" y="92" width="104" height="104" rx="26" fill="#0c1226" stroke="#818cf8" stroke-opacity="0.35" stroke-width="3" />
+  <path d="M138 122 L116 144 L138 166" fill="none" stroke="url(#brand)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M160 122 L182 144 L160 166" fill="none" stroke="url(#brand)" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M152 114 L146 174" fill="none" stroke="#e2e8f0" stroke-width="9" stroke-linecap="round" />
+
+  <text x="88" y="292" font-family="DejaVu-Sans-Bold" font-size="74" fill="#eef2ff">Programmer's Hub</text>
+  <text x="88" y="360" font-family="DejaVu-Sans" font-size="34" fill="#a5b4fc">Find talent. Ship projects. Get hired.</text>
+
+  <text x="88" y="452" font-family="DejaVu-Sans" font-size="27" fill="#8f9ac2">Publish a real profile. Show the work you've shipped.</text>
+  <text x="88" y="494" font-family="DejaVu-Sans" font-size="27" fill="#8f9ac2">Get contacted by clients in one click — no fees, no gatekeepers.</text>
+
+  <rect x="88" y="536" width="470" height="56" rx="28" fill="#6366f1" fill-opacity="0.18" stroke="#818cf8" stroke-opacity="0.45" stroke-width="2" />
+  <text x="118" y="572" font-family="DejaVu-Sans-Bold" font-size="24" fill="#c7d2fe">React 19 · Vite · Tailwind v4 · Supabase</text>
+</svg>

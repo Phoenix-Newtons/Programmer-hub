@@ -1,6 +1,6 @@
 import { useState } from "react";
-import useDocumentTitle from "../hooks/useDocumentTitle";
-import {Atom, Blocks, Code2, Copy, Database, Heart, Mail, MessageCircle, Palette, Rocket, Server, ShieldCheck, Sparkles, Target, Terminal, Users, Zap} from "lucide-react";
+import usePageMeta from "../hooks/usePageMeta";
+import {Atom, Blocks, Check, Code2, Copy, Database, Heart, Mail, MapPin, MessageCircle, Palette, Rocket, Server, ShieldCheck, Sparkles, Target, Terminal, Users, Zap} from "lucide-react";
 import { Github } from "../components/brand/BrandIcons";
 import PageHeading from "../components/layout/PageHeading";
 import SectionHeading from "../components/ui/SectionHeading";
@@ -8,8 +8,8 @@ import Avatar from "../components/ui/Avatar";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
 import GoogleButton from "../components/auth/GoogleButton";
-import { SITE } from "../lib/site";
-import { waLink } from "../lib/utils";
+import { PLATFORM_PROMISES, SITE } from "../lib/site";
+import { copyToClipboard, waLink } from "../lib/utils";
 import { useToast } from "../context/ToastContext";
 
 const VALUES = [
@@ -53,19 +53,47 @@ const ROADMAP = [
   { icon: Code2, title: "Public API", text: "Let other tools query the developer directory." },
 ];
 
+/** The v2 upgrade list — keeps the "what changed" story in one place. */
+const IMPROVEMENTS = [
+  "Command palette (⌘K) that searches developers, projects and roles at once",
+  "A private shortlist with CSV export, saved right in your browser",
+  "Applications inbox in the dashboard — read every applicant in one place",
+  "Shareable filter URLs, fuzzy search and sorting on every list",
+  "In-app dark / light / system theme, plus a no-flash first paint",
+  "Error boundaries, offline detection and honest empty states",
+  "Keyboard shortcuts, focus trapping, live regions and skip links",
+  "Route-level code splitting, retrying data layer and JSON-LD metadata",
+];
+
+const SELF_HOST = [
+  { step: "1", text: "npm install && npm run dev" },
+  { step: "2", text: "Run supabase/schema.sql in your Supabase project" },
+  { step: "3", text: "Add VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY to .env.local" },
+];
+
 export default function About() {
-  useDocumentTitle("About");
+  usePageMeta({
+    title: "About",
+    description: `${SITE.name} is a developer marketplace built by ${SITE.createdBy} — skills over résumés, direct contact, open source.`,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "AboutPage",
+      name: `About ${SITE.name}`,
+      author: { "@type": "Person", name: SITE.creator.name, address: SITE.creator.location },
+      url: SITE.repo,
+    },
+  });
   const toast = useToast();
   const [copied, setCopied] = useState(false);
 
   async function copyEmail() {
-    try {
-      await navigator.clipboard.writeText(SITE.supportEmail);
+    const ok = await copyToClipboard(SITE.supportEmail);
+    if (ok) {
       setCopied(true);
       toast.success("Support email copied to clipboard.");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.warning("Copy failed — the email is " + SITE.supportEmail);
+    } else {
+      toast.warning(`Copy failed — the email is ${SITE.supportEmail}`);
     }
   }
 
@@ -74,6 +102,7 @@ export default function About() {
       <PageHeading
         eyebrow="About"
         icon={Sparkles}
+        breadcrumbs={[{ label: "About" }]}
         title="A marketplace built by a developer, for developers."
         description={`${SITE.name} exists because talent is everywhere, but opportunity is not. It's a small, fast, open platform where programmers publish real work and get contacted directly.`}
       >
@@ -107,14 +136,22 @@ export default function About() {
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <span className="chip border-white/20 bg-white/10 text-white">
-                  <MapPinIcon /> {SITE.creator.location}
+                  <MapPin className="h-3 w-3" aria-hidden="true" /> {SITE.creator.location}
                 </span>
                 <span className="chip border-white/20 bg-white/10 text-white">
-                  <Rocket className="h-3 w-3" /> Founded {SITE.foundedYear}
+                  <Rocket className="h-3 w-3" aria-hidden="true" /> Founded {SITE.foundedYear}
                 </span>
                 <span className="chip border-white/20 bg-white/10 text-white">
-                  <Code2 className="h-3 w-3" /> Full-stack engineer
+                  <Code2 className="h-3 w-3" aria-hidden="true" /> Full-stack engineer
                 </span>
+                <a
+                  href={SITE.repo}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="chip border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                >
+                  <Github className="h-3 w-3" aria-hidden="true" /> View the source
+                </a>
               </div>
             </div>
           </div>
@@ -240,6 +277,74 @@ export default function About() {
         </div>
       </section>
 
+      {/* Promises */}
+      <section className="mt-20">
+        <SectionHeading
+          eyebrow="The deal"
+          icon={ShieldCheck}
+          title="Three promises, no fine print."
+          description="The hub is a discovery layer. It never sits between you and the person you want to work with."
+          align="center"
+        />
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {PLATFORM_PROMISES.map((promise) => (
+            <div key={promise.title} className="card p-6 text-center">
+              <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-emerald-500/15 text-emerald-300">
+                <Check className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 text-base font-bold text-ink">{promise.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{promise.text}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* What's new */}
+      <section className="mt-20 grid gap-6 lg:grid-cols-2">
+        <div className="card p-7">
+          <Badge tone="emerald" icon={Sparkles}>
+            v2 release
+          </Badge>
+          <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">What shipped in this upgrade</h2>
+          <ul className="mt-5 space-y-3">
+            {IMPROVEMENTS.map((item) => (
+              <li key={item} className="flex gap-3 text-sm leading-relaxed text-ink-soft">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" aria-hidden="true" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="card p-7">
+          <Badge tone="indigo" icon={Terminal}>
+            Self-host
+          </Badge>
+          <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">Run this on your own Supabase</h2>
+          <p className="mt-3 text-sm leading-relaxed text-muted">
+            Everything is open source and vendor-light. Three commands and your own database:
+          </p>
+          <ol className="mt-6 space-y-3">
+            {SELF_HOST.map((item) => (
+              <li key={item.step} className="flex items-start gap-3 rounded-xl border border-line bg-bg-elev/50 p-3">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-brand-500/15 text-xs font-bold text-brand-300">
+                  {item.step}
+                </span>
+                <code className="font-mono text-xs leading-relaxed text-ink-soft">{item.text}</code>
+              </li>
+            ))}
+          </ol>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button href={`${SITE.repo}#readme`} variant="ghost" icon={Github}>
+              Read the README
+            </Button>
+            <Button href={`${SITE.repo}/blob/main/supabase/schema.sql`} variant="ghost" icon={Database}>
+              View the schema
+            </Button>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="mt-20">
         <div className="card overflow-hidden p-8 sm:p-12">
@@ -288,15 +393,5 @@ export default function About() {
         </div>
       </section>
     </div>
-  );
-}
-
-/** Small inline pin so the creator card stays self-contained. */
-function MapPinIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.2">
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
   );
 }

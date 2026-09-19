@@ -1,88 +1,84 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { X, Briefcase, Code2, LayoutDashboard, LogOut, Menu, Moon, Rocket, Sun, UserRound, ChevronDown } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
-import { useTheme } from "../../context/ThemeContext";
-import { useToast } from "../../context/ToastContext";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { BookmarkCheck, Code2, Command, LayoutDashboard, LogOut, Menu, Search, X } from "lucide-react";
+
 import Button from "../ui/Button";
-import Avatar from "../ui/Avatar";
 import GoogleButton from "../auth/GoogleButton";
-import { NAV_LINKS, SITE } from "../../lib/site";
+import ThemeToggle from "./ThemeToggle";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
+import { NAV_LINKS } from "../../lib/site";
+import { useShortlist } from "../../lib/shortlist";
+import { openPalette } from "../../lib/uiStore";
 import { cn } from "../../lib/utils";
 
+/** Sticky, glassy top navigation with search, shortlist and account menu. */
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { isAuthenticated, user, profile, displayName, avatarUrl, signOut } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const [scrolled, setScrolled] = useState(false);
+  const { pathname } = useLocation();
+  const { isAuthenticated, displayName, avatarUrl, signOut } = useAuth();
   const toast = useToast();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const menuRef = useRef(null);
+  const shortlist = useShortlist();
 
+  // Close the drawer on navigation.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Elevate the bar once the page scrolls.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Escape closes the mobile drawer.
   useEffect(() => {
-    setMobileOpen(false);
-    setMenuOpen(false);
-  }, [location.pathname]);
-
-  useEffect(() => {
-    if (!menuOpen) return undefined;
-    const onClick = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) setMenuOpen(false);
+    if (!mobileOpen) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setMobileOpen(false);
     };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [menuOpen]);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   async function handleSignOut() {
     const { error } = await signOut();
-    if (error) return toast.error("Could not sign out. Try again.");
-    toast.success("Signed out. See you soon!");
-    navigate("/");
+    if (error) toast.error("Could not sign out. Try again.");
+    else toast.info("Signed out.");
   }
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300",
+        "sticky top-0 z-50 border-b transition-colors duration-300",
         scrolled
-          ? "border-b border-line bg-bg/80 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/60"
-          : "border-b border-transparent"
+          ? "border-line bg-bg/85 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/70"
+          : "border-transparent bg-bg/60 backdrop-blur-md"
       )}
     >
       <div className="container-page">
-        <div className="flex h-16 items-center justify-between gap-4 sm:h-[72px]">
-          <Link to="/" className="group flex items-center gap-3">
-            <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-400 text-white shadow-[0_10px_30px_-10px_rgb(99_102_241/0.9)] transition group-hover:scale-105">
-              <Code2 className="h-5 w-5" />
+        <div className="flex h-16 items-center justify-between gap-3">
+          <Link to="/" className="flex shrink-0 items-center gap-2.5" aria-label="Programmer's Hub home">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-cyan-400 text-white shadow-[0_10px_30px_-14px_rgb(99_102_241/0.9)]">
+              <Code2 className="h-5 w-5" aria-hidden="true" />
             </span>
-            <span className="leading-tight">
-              <span className="block text-[0.98rem] font-extrabold tracking-tight text-ink">
-                Programmer&rsquo;s Hub
-              </span>
-              <span className="block text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted">
-                {SITE.tagline}
-              </span>
+            <span className="hidden text-[1.05rem] font-extrabold tracking-tight text-ink sm:block">
+              Programmer&rsquo;s Hub
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main navigation">
+          <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
             {NAV_LINKS.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
                   cn(
-                    "rounded-lg px-3.5 py-2 text-sm font-semibold transition",
-                    isActive ? "bg-brand-500/12 text-brand-300" : "text-muted hover:bg-white/5 hover:text-ink"
+                    "rounded-xl px-3.5 py-2 text-sm font-semibold transition",
+                    isActive ? "bg-brand-500/15 text-brand-200" : "text-ink-soft hover:bg-white/5 hover:text-ink"
                   )
                 }
               >
@@ -92,72 +88,79 @@ export default function Navbar() {
           </nav>
 
           <div className="flex items-center gap-2">
+            {/* Palette trigger doubles as site search */}
             <button
               type="button"
-              onClick={toggleTheme}
-              className="grid h-10 w-10 place-items-center rounded-xl border border-line-strong bg-surface text-muted transition hover:border-brand-400/50 hover:text-ink"
-              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-              title={isDark ? "Light mode" : "Dark mode"}
+              onClick={() => openPalette("")}
+              aria-label="Search the hub"
+              aria-keyshortcuts="Meta+K Control+K"
+              className="group hidden items-center gap-2 rounded-xl border border-line-strong bg-surface px-3 py-2 text-sm text-muted transition hover:border-brand-400/60 hover:text-ink md:flex"
             >
-              {isDark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
+              <Search className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden lg:inline">Search…</span>
+              <kbd className="ml-1 flex items-center gap-0.5 rounded-md border border-line-strong bg-surface-solid px-1.5 py-0.5 font-mono text-[0.66rem] font-bold text-muted">
+                <Command className="h-2.5 w-2.5" aria-hidden="true" />K
+              </kbd>
             </button>
 
+            <button
+              type="button"
+              onClick={() => openPalette("")}
+              aria-label="Search the hub"
+              className="grid h-10 w-10 place-items-center rounded-xl border border-line-strong bg-surface text-ink-soft transition hover:border-brand-400/60 hover:text-ink md:hidden"
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+            </button>
+
+            <Link
+              to="/shortlist"
+              aria-label={`Shortlist: ${shortlist.count} saved ${shortlist.count === 1 ? "developer" : "developers"}`}
+              className={cn(
+                "relative grid h-10 w-10 place-items-center rounded-xl border transition",
+                shortlist.count
+                  ? "border-amber-400/40 bg-amber-500/15 text-amber-200"
+                  : "border-line-strong bg-surface text-ink-soft hover:border-amber-400/50 hover:text-ink"
+              )}
+            >
+              <BookmarkCheck className="h-4 w-4" aria-hidden="true" />
+              {shortlist.count ? (
+                <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-1 text-[0.62rem] font-black text-amber-950">
+                  {shortlist.count}
+                </span>
+              ) : null}
+            </Link>
+
+            <ThemeToggle compact className="hidden sm:block" />
+
             {isAuthenticated ? (
-              <div className="relative hidden sm:block" ref={menuRef}>
+              <div className="hidden items-center gap-2 lg:flex">
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-2.5 rounded-xl border border-line-strong bg-surface px-2.5 py-1.5 transition hover:border-brand-400/60"
+                >
+                  <span className="grid h-7 w-7 place-items-center overflow-hidden rounded-lg bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-[0.7rem] font-bold text-white">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      (displayName || "U").slice(0, 1).toUpperCase()
+                    )}
+                  </span>
+                  <span className="max-w-24 truncate text-sm font-semibold text-ink">
+                    {displayName || "Dashboard"}
+                  </span>
+                </Link>
                 <button
                   type="button"
-                  onClick={() => setMenuOpen((open) => !open)}
-                  className="flex items-center gap-2.5 rounded-xl border border-line-strong bg-surface py-1.5 pl-1.5 pr-3 transition hover:border-brand-400/50"
+                  onClick={handleSignOut}
+                  aria-label="Sign out"
+                  title="Sign out"
+                  className="grid h-10 w-10 place-items-center rounded-xl border border-line-strong bg-surface text-rose-300 transition hover:border-rose-400/50 hover:bg-rose-500/10"
                 >
-                  <Avatar name={displayName || user?.email} src={avatarUrl} size="sm" ring={false} />
-                  <span className="max-w-[9rem] truncate text-sm font-semibold text-ink">
-                    {displayName || "Developer"}
-                  </span>
-                  <ChevronDown className={cn("h-4 w-4 text-muted transition", menuOpen && "rotate-180")} />
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
                 </button>
-
-                {menuOpen ? (
-                  <div className="absolute right-0 mt-2 w-60 animate-rise overflow-hidden rounded-2xl border border-line-strong bg-surface-solid/95 shadow-2xl backdrop-blur-xl">
-                    <div className="border-b border-line px-4 py-3">
-                      <p className="truncate text-sm font-bold text-ink">{displayName || "Developer"}</p>
-                      <p className="truncate text-xs text-muted">{user?.email}</p>
-                    </div>
-                    <div className="p-2">
-                      <Link
-                        to="/dashboard"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft transition hover:bg-brand-500/10 hover:text-ink"
-                      >
-                        <LayoutDashboard className="h-4 w-4 text-brand-300" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        to="/developers"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft transition hover:bg-brand-500/10 hover:text-ink"
-                      >
-                        <UserRound className="h-4 w-4 text-brand-300" />
-                        Browse developers
-                      </Link>
-                      <Link
-                        to="/hiring"
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-ink-soft transition hover:bg-brand-500/10 hover:text-ink"
-                      >
-                        <Briefcase className="h-4 w-4 text-brand-300" />
-                        Hiring board
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={handleSignOut}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-rose-300 transition hover:bg-rose-500/10"
-                      >
-                        <LogOut className="h-4 w-4" />
-                        Sign out
-                      </button>
-                    </div>
-                  </div>
-                ) : null}
               </div>
             ) : (
-              <div className="hidden items-center gap-2 sm:flex">
+              <div className="hidden items-center gap-2 lg:flex">
                 <Button to="/login" variant="ghost" size="sm">
                   Sign in
                 </Button>
@@ -171,6 +174,7 @@ export default function Navbar() {
               className="grid h-10 w-10 place-items-center rounded-xl border border-line-strong bg-surface text-ink lg:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
+              aria-controls="mobile-nav"
             >
               {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -180,12 +184,25 @@ export default function Navbar() {
 
       {/* Mobile drawer */}
       <div
+        id="mobile-nav"
+        // `inert` keeps the closed drawer out of the tab order and the a11y tree.
+        inert={!mobileOpen || undefined}
         className={cn(
           "overflow-hidden border-t border-line bg-bg/95 backdrop-blur-xl transition-[max-height,opacity] duration-300 lg:hidden",
-          mobileOpen ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
+          mobileOpen ? "max-h-[560px] opacity-100" : "max-h-0 opacity-0"
         )}
+        aria-hidden={!mobileOpen}
       >
         <div className="container-page space-y-2 py-5">
+          <button
+            type="button"
+            onClick={() => openPalette("")}
+            className="flex w-full items-center gap-3 rounded-xl border border-line-strong bg-surface px-4 py-3 text-left text-sm font-semibold text-muted"
+          >
+            <Search className="h-4 w-4" aria-hidden="true" />
+            Search developers, projects, roles…
+          </button>
+
           {NAV_LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -193,13 +210,34 @@ export default function Navbar() {
               className={({ isActive }) =>
                 cn(
                   "block rounded-xl px-4 py-3 text-sm font-semibold transition",
-                  isActive ? "bg-brand-500/12 text-brand-300" : "text-ink-soft hover:bg-white/5"
+                  isActive ? "bg-brand-500/15 text-brand-200" : "text-ink-soft hover:bg-white/5"
                 )
               }
             >
               {link.label}
             </NavLink>
           ))}
+
+          <NavLink
+            to="/shortlist"
+            tabIndex={mobileOpen ? 0 : -1}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition",
+                isActive ? "bg-amber-500/15 text-amber-200" : "text-ink-soft hover:bg-white/5"
+              )
+            }
+          >
+            Shortlist
+            <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-200">
+              {shortlist.count}
+            </span>
+          </NavLink>
+
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3">
+            <ThemeToggle compact />
+            <span className="text-sm font-semibold text-muted">Appearance</span>
+          </div>
 
           <div className="grid gap-2 pt-3">
             {isAuthenticated ? (
@@ -214,7 +252,7 @@ export default function Navbar() {
             ) : (
               <>
                 <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
-                <Button to="/login" variant="ghost" icon={Rocket}>
+                <Button to="/login" variant="ghost">
                   Sign in with email
                 </Button>
               </>
@@ -222,6 +260,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
     </header>
   );
 }

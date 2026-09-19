@@ -2,7 +2,7 @@
 #
 # It is kept here because the automation token used for this branch is not
 # allowed to write to `.github/workflows/`. Moving it there enables:
-#   • build + route smoke test on every push / pull request
+#   • lint + unit tests + build + route smoke test on every push / pull request
 #   • automatic GitHub Pages deploy from main
 #
 #   mkdir -p .github/workflows && cp docs/ci.yml .github/workflows/ci.yml
@@ -15,8 +15,8 @@ on:
   pull_request:
 
 jobs:
-  build:
-    name: Build & smoke test
+  verify:
+    name: Lint, test & build
     runs-on: ubuntu-latest
 
     steps:
@@ -30,21 +30,30 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit & component tests
+        run: npm run test
+
       - name: Build
         run: npm run build
 
       - name: Render every route (jsdom smoke test)
-        run: node scripts/smoke.mjs
+        run: npm run smoke
 
   deploy-pages:
     name: Deploy to GitHub Pages
-    needs: build
+    needs: verify
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pages: write
       id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - uses: actions/checkout@v4
@@ -69,4 +78,5 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
-      - uses: actions/deploy-pages@v4
+      - id: deployment
+        uses: actions/deploy-pages@v4

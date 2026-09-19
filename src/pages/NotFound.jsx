@@ -1,10 +1,16 @@
-import { Compass, Home, Mail, Search } from "lucide-react";
-import useDocumentTitle from "../hooks/useDocumentTitle";
+import { Compass, Home, Mail, Search, Users } from "lucide-react";
+import { Link } from "react-router-dom";
 import Button from "../components/ui/Button";
-import { SITE } from "../lib/site";
+import usePageMeta from "../hooks/usePageMeta";
+import { NAV_LINKS, SITE, TECH_MARQUEE } from "../lib/site";
 
 export default function NotFound() {
-  useDocumentTitle("Page not found");
+  usePageMeta({
+    title: "Page not found (404)",
+    description: "That route doesn't exist on Programmer's Hub. Jump back into developers, projects or the hiring board.",
+    noIndex: true,
+  });
+
   return (
     <div className="container-page flex min-h-[70vh] flex-col items-center justify-center py-20 text-center">
       <span className="relative grid h-20 w-20 place-items-center">
@@ -29,14 +35,33 @@ export default function NotFound() {
         <Button to="/developers" variant="ghost" icon={Search}>
           Browse developers
         </Button>
-        <Button href={`mailto:${SITE.supportEmail}`} variant="ghost" icon={Mail}>
+        <Button href={`mailto:${SITE.supportEmail}?subject=Broken%20link`} variant="ghost" icon={Mail}>
           Report a broken link
         </Button>
       </div>
 
-      <p className="mt-10 flex items-center gap-2 text-xs text-muted">
-        <Compass className="h-3.5 w-3.5" />
-        {SITE.name} — created by {SITE.createdBy}
+      <nav aria-label="Popular pages" className="mt-12 w-full max-w-2xl">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Popular destinations</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className="card card-hover flex items-center justify-between gap-3 p-4 text-left"
+            >
+              <span>
+                <span className="block text-sm font-bold text-ink">{link.label}</span>
+                <span className="block text-xs text-muted">Back to browsing</span>
+              </span>
+              <Users className="h-4 w-4 text-brand-300" aria-hidden="true" />
+            </Link>
+          ))}
+        </div>
+      </nav>
+
+      <p className="mt-10 flex flex-wrap items-center justify-center gap-2 text-xs text-muted">
+        <Compass className="h-3.5 w-3.5" aria-hidden="true" />
+        {SITE.name} — built with {TECH_MARQUEE.slice(0, 3).join(", ")} and friends.
       </p>
     </div>
   );

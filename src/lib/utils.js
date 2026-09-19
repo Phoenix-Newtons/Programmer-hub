@@ -32,6 +32,15 @@ export function safeText(value, fallback = "—") {
   return value === null || value === undefined || value === "" ? fallback : String(value);
 }
 
+export function pluralize(count, singular, plural) {
+  const value = Number(count) || 0;
+  return `${value} ${value === 1 ? singular : plural || `${singular}s`}`;
+}
+
+export function clamp(value, min, max) {
+  return Math.min(Math.max(Number(value) || 0, min), max);
+}
+
 /** Skills arrive either as a Postgres array or a comma-separated string. */
 export function normalizeList(value) {
   if (Array.isArray(value)) return value.map((v) => String(v).trim()).filter(Boolean);
@@ -61,8 +70,17 @@ export function waLink(number) {
 
 export function stars(rating) {
   const clean = Number(rating) || 0;
-  const full = Math.round(Math.min(Math.max(clean, 0), 5));
+  const full = Math.round(clamp(clean, 0, 5));
   return { full, empty: Math.max(0, 5 - full), value: clean };
+}
+
+/** "1200", "$1,200", "800 – 1200" → a number used for sorting. Best effort. */
+export function parseRate(value) {
+  if (value === null || value === undefined || value === "") return Number.POSITIVE_INFINITY;
+  const numbers = String(value).match(/\d[\d,.]*/g);
+  if (!numbers?.length) return Number.POSITIVE_INFINITY;
+  const first = Number(numbers[0].replace(/[,\s]/g, ""));
+  return Number.isFinite(first) ? first : Number.POSITIVE_INFINITY;
 }
 
 export function formatMoney(value) {
@@ -76,7 +94,10 @@ export function timeAgo(date) {
   if (!date) return "";
   const then = new Date(date).getTime();
   if (Number.isNaN(then)) return "";
-  const seconds = Math.floor((Date.now() - then) / 1000);
+  const seconds = Math.round((Date.now() - then) / 1000);
+  const future = seconds < 0;
+  const magnitude = Math.abs(seconds);
+
   const units = [
     ["year", 31536000],
     ["month", 2592000],
@@ -85,13 +106,15 @@ export function timeAgo(date) {
     ["hour", 3600],
     ["minute", 60],
   ];
+
   for (const [unit, size] of units) {
-    if (seconds >= size) {
-      const value = Math.floor(seconds / size);
-      return `${value} ${unit}${value > 1 ? "s" : ""} ago`;
+    if (magnitude >= size) {
+      const value = Math.floor(magnitude / size);
+      const label = `${value} ${unit}${value > 1 ? "s" : ""}`;
+      return future ? `in ${label}` : `${label} ago`;
     }
   }
-  return "just now";
+  return future ? "in a moment" : "just now";
 }
 
 export function formatDate(date) {
@@ -129,6 +152,71 @@ export function truncate(text = "", max = 140) {
   return str.length > max ? `${str.slice(0, max).trimEnd()}…` : str;
 }
 
+/** Escapes a value for CSV export (RFC 4180). */
+export function csvCell(value) {
+  const str = String(value ?? "");
+  return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+}
+
+export function toCsv(rows, columns) {
+  const head = columns.map((column) => csvCell(column.label ?? column.key)).join(",");
+  const body = rows
+    .map((row) => columns.map((column) => csvCell(column.value ? column.value(row) : row[column.key])).join(","))
+    .join("\n");
+  return `${head}\n${body}`;
+}
+
+/** Triggers a client-side file download without any dependency. */
+export function downloadFile(filename, content, type = "text/plain;charset=utf-8") {
+  if (typeof document === "undefined") return false;
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
+}
+
+/** Clipboard with a graceful fallback for older/insecure contexts. */
+export async function copyToClipboard(text) {
+  try {
+    if (navigator?.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through to the legacy path */
+  }
+  try {
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    const ok = document.execCommand("copy");
+    area.remove();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
+export function debounce(fn, wait = 250) {
+  let timer;
+  function debounced(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), wait);
+  }
+  debounced.cancel = () => clearTimeout(timer);
+  return debounced;
+}
+
 /** Turns a Supabase/Postgrest error into something a human can act on. */
 export function friendlyError(error, fallback = "Something went wrong. Please try again.") {
   if (!error) return fallback;
@@ -153,6 +241,9 @@ export function friendlyError(error, fallback = "Something went wrong. Please tr
   }
   if (/password should be/i.test(message)) {
     return "Password must be at least 6 characters.";
+  }
+  if (/rate limit|too many requests/i.test(message)) {
+    return "Too many requests — wait a few seconds and try again.";
   }
   return message;
 }
@@ -179,4 +270,36 @@ export function isMissingTableError(error) {
     error?.code === "PGRST205" ||
     error?.code === "PGRST204"
   );
+}
+
+/** Sorts a list without mutating the input. */
+export function sortBy(list, selector, direction = "asc") {
+  const factor = direction === "desc" ? -1 : 1;
+  return [...list].sort((a, b) => {
+    const left = selector(a);
+    const right = selector(b);
+    if (left === right) return 0;
+    if (left === null || left === undefined) return 1;
+    if (right === null || right === undefined) return -1;
+    return left > right ? factor : -factor;
+  });
+}
+
+/** Case-insensitive containment check that also accepts array/haystack lists. */
+export function matchesQuery(query, ...values) {
+  const needle = String(query || "").trim().toLowerCase();
+  if (!needle) return true;
+  return values.some((value) =>
+    (Array.isArray(value) ? value : [value])
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(needle)
+  );
+}
+
+/** Signature shared by the profile "strength" meter so it stays consistent. */
+export function completionOf(values, keys) {
+  const filled = keys.filter((key) => String(values?.[key] ?? "").trim().length > 0).length;
+  return Math.round((filled / keys.length) * 100);
 }

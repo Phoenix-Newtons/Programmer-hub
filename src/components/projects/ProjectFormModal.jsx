@@ -6,8 +6,9 @@ import Field from "../ui/Field";
 import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { createProject } from "../../lib/api";
-import { friendlyError, isValidUrl, normalizeUrl } from "../../lib/utils";
+import { createProject, updateProject } from "../../lib/api";
+import { cn, friendlyError, isValidUrl, normalizeUrl, normalizeList } from "../../lib/utils";
+import { PROJECT_FILTERS } from "../../lib/site";
 
 const EMPTY = {
   title: "",
@@ -24,6 +25,7 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const isEditing = Boolean(project?.id);
 
   useEffect(() => {
     if (!open) return;
@@ -73,28 +75,35 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
       author_name: displayName || user.email?.split("@")[0] || "Anonymous",
       title: values.title.trim(),
       description: values.description.trim(),
-      tags: values.tags
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: normalizeList(values.tags),
       repo_url: values.repo_url ? normalizeUrl(values.repo_url.trim()) : null,
       live_url: values.live_url ? normalizeUrl(values.live_url.trim()) : null,
       cover_url: values.cover_url ? normalizeUrl(values.cover_url.trim()) : null,
-      featured: false,
     };
 
-    const { error } = await createProject(payload);
+    const { error } = isEditing
+      ? await updateProject(project.id, payload)
+      : await createProject({ ...payload, featured: false });
     setSaving(false);
 
     if (error) {
-      toast.error(friendlyError(error, "Could not publish the project."));
+      toast.error(friendlyError(error, isEditing ? "Could not save your changes." : "Could not publish the project."));
       return;
     }
 
-    toast.success("Project published. Nice work!");
+    toast.success(isEditing ? "Project updated." : "Project published. Nice work!");
     onSaved?.();
     onClose?.();
   }
+
+  /** Adds one of the suggested tags without losing what's already typed. */
+  function toggleTag(tag) {
+    const current = normalizeList(values.tags);
+    const exists = current.some((item) => item.toLowerCase() === tag.toLowerCase());
+    update("tags", exists ? current.filter((item) => item.toLowerCase() !== tag.toLowerCase()).join(", ") : [...current, tag].join(", "));
+  }
+
+  const activeTags = normalizeList(values.tags).map((tag) => tag.toLowerCase());
 
   return (
     <Modal
@@ -136,14 +145,38 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
           maxLength={600}
         />
 
-        <Field
-          label="Tags"
-          hint="comma separated"
-          value={values.tags}
-          onChange={(event) => update("tags", event.target.value)}
-          placeholder="React, Supabase, Mobile"
-          error={errors.tags}
-        />
+        <div>
+          <Field
+            label="Tags"
+            hint="comma separated"
+            value={values.tags}
+            onChange={(event) => update("tags", event.target.value)}
+            placeholder="React, Supabase, Mobile"
+            error={errors.tags}
+          />
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {PROJECT_FILTERS.filter((tag) => tag !== "All").map((tag) => {
+              const active = activeTags.includes(tag.toLowerCase());
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  aria-pressed={active}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-[0.7rem] font-semibold transition",
+                    active
+                      ? "border-transparent bg-gradient-to-r from-indigo-500 to-fuchsia-500 text-white"
+                      : "border-line-strong bg-surface text-muted hover:border-brand-400/50 hover:text-ink"
+                  )}
+                >
+                  {active ? "✓ " : "+ "}
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field

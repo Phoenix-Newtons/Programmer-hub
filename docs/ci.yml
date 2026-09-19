@@ -30,17 +30,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Unit & component tests
-        run: npm run test
-
-      - name: Build
-        run: npm run build
-
-      - name: Render every route (jsdom smoke test)
-        run: npm run smoke
+      # lint + format check + unit tests + build + artifact audit + route smoke
+      - name: Verify
+        run: npm run verify
 
   deploy-pages:
     name: Deploy to GitHub Pages

@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { X, CheckCircle2, AlertTriangle, Info, XCircle } from "lucide-react";
 
 const ToastContext = createContext(null);
@@ -13,6 +13,15 @@ const VARIANTS = {
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
   const timers = useRef(new Map());
+
+  // Never leave a dismissal timer running after the provider goes away.
+  useEffect(
+    () => () => {
+      timers.current.forEach((timer) => clearTimeout(timer));
+      timers.current.clear();
+    },
+    []
+  );
 
   const dismiss = useCallback((id) => {
     setToasts((list) => list.filter((toast) => toast.id !== id));
@@ -51,7 +60,13 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-center gap-2 p-4 sm:items-end sm:p-6">
+      <div
+        // One polite live region for the whole stack, so screen readers
+        // announce notifications as they arrive without stealing focus.
+        aria-live="polite"
+        aria-atomic="false"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-[100] flex flex-col items-center gap-2 p-4 sm:items-end sm:p-6"
+      >
         {toasts.map((toast) => {
           const variant = VARIANTS[toast.variant] || VARIANTS.info;
           const Icon = variant.icon;

@@ -3,6 +3,7 @@ import { ArrowUp, Code2, Heart, Mail, MessageCircle, Sparkles } from "lucide-rea
 import { Github, Linkedin, X as Twitter } from "../brand/BrandIcons";
 import Toggle from "../ui/Toggle";
 import { SITE } from "../../lib/site";
+import { prefetchLinkProps } from "../../lib/pages";
 import { useDemoMode, setDemoMode } from "../../lib/demo";
 import { TECHNOLOGIES } from "../../lib/site";
 import { waLink } from "../../lib/utils";
@@ -73,7 +74,11 @@ export default function Footer() {
                 {column.links.map((link) => (
                   <li key={link.label}>
                     {link.to ? (
-                      <Link to={link.to} className="text-sm text-muted transition hover:text-brand-300">
+                      <Link
+                        to={link.to}
+                        {...prefetchLinkProps(link.to)}
+                        className="text-sm text-muted transition hover:text-brand-300"
+                      >
                         {link.label}
                       </Link>
                     ) : (

@@ -45,6 +45,17 @@ export async function renderWithProviders(ui, { route = "/" } = {}) {
     });
   };
 
+  /** Dispatches a keyboard event from `target` (default: the document). */
+  const press = async (target, key, init = {}) => {
+    const node = target || document;
+    await act(async () => {
+      node.dispatchEvent(
+        new window.KeyboardEvent("keydown", { key, bubbles: true, cancelable: true, ...init })
+      );
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+  };
+
   const type = async (input, value) => {
     if (!input) throw new Error("type() received a missing input");
     await act(async () => {
@@ -64,6 +75,7 @@ export async function renderWithProviders(ui, { route = "/" } = {}) {
     query,
     queryAll,
     click,
+    press,
     type,
     text: () => container.textContent.replace(/\s+/g, " ").trim(),
     unmount: async () => {

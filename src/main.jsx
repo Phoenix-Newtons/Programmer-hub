@@ -5,6 +5,7 @@ import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
+import { canPrefetch, prefetchPage } from "./lib/pages";
 import "./index.css";
 
 const container = document.getElementById("root");
@@ -49,4 +50,15 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
         /* Private mode, unsupported browser or blocked by policy — the app works regardless. */
       });
   });
+}
+
+/**
+ * Idle warm-up: once the first screen is interactive, quietly download the
+ * chunks behind the primary navigation so the next click is instant. Skipped
+ * on save-data / slow connections.
+ */
+if (canPrefetch()) {
+  const warm = () => ["Developers", "Projects", "Hiring"].forEach(prefetchPage);
+  const schedule = window.requestIdleCallback || ((callback) => setTimeout(callback, 2000));
+  window.addEventListener("load", () => schedule(warm), { once: true });
 }

@@ -22,6 +22,7 @@ import Avatar from "../ui/Avatar";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
+import { prefetchPath } from "../../lib/pages";
 import { openPalette, usePalette } from "../../lib/uiStore";
 import { useDemoMode, setDemoMode } from "../../lib/demo";
 import { invalidateSearchIndex, loadSearchIndex } from "../../lib/searchIndex";
@@ -462,7 +463,10 @@ export default function CommandPalette() {
                     role="option"
                     aria-selected={isActive}
                     data-active={isActive}
-                    onMouseEnter={() => setActive(cursor)}
+                    onMouseEnter={() => {
+                      setActive(cursor);
+                      if (entry.to) prefetchPath(entry.to);
+                    }}
                     onClick={() => runEntry(entry)}
                     className={cn(
                       "flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition",

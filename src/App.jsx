@@ -1,20 +1,22 @@
-import { lazy, Suspense, useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import ErrorBoundary from "./components/feedback/ErrorBoundary";
 import { PageLoader } from "./components/ui/Skeletons";
+import { lazyPage } from "./lib/pages";
 
-// Route-level code splitting: each page is fetched on demand.
-const Home = lazy(() => import("./pages/Home"));
-const Developers = lazy(() => import("./pages/Developers"));
-const DeveloperProfile = lazy(() => import("./pages/DeveloperProfile"));
-const Projects = lazy(() => import("./pages/Projects"));
-const Hiring = lazy(() => import("./pages/Hiring"));
-const Shortlist = lazy(() => import("./pages/Shortlist"));
-const About = lazy(() => import("./pages/About"));
-const Login = lazy(() => import("./pages/Login"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+// Route-level code splitting: each page is fetched on demand (see lib/pages.js,
+// which also powers the hover prefetching in the navigation).
+const Home = lazyPage("Home");
+const Developers = lazyPage("Developers");
+const DeveloperProfile = lazyPage("DeveloperProfile");
+const Projects = lazyPage("Projects");
+const Hiring = lazyPage("Hiring");
+const Shortlist = lazyPage("Shortlist");
+const About = lazyPage("About");
+const Login = lazyPage("Login");
+const Dashboard = lazyPage("Dashboard");
+const NotFound = lazyPage("NotFound");
 
 /**
  * Every route is wrapped in its own error boundary, so a crash in one screen

@@ -10,6 +10,7 @@ import { useToast } from "../../context/ToastContext";
 import { NAV_LINKS } from "../../lib/site";
 import { useShortlist } from "../../lib/shortlist";
 import { openPalette } from "../../lib/uiStore";
+import { prefetchLinkProps } from "../../lib/pages";
 import { cn } from "../../lib/utils";
 
 /** Sticky, glassy top navigation with search, shortlist and account menu. */
@@ -75,6 +76,7 @@ export default function Navbar() {
               <NavLink
                 key={link.to}
                 to={link.to}
+                {...prefetchLinkProps(link.to)}
                 className={({ isActive }) =>
                   cn(
                     "rounded-xl px-3.5 py-2 text-sm font-semibold transition",
@@ -209,6 +211,7 @@ export default function Navbar() {
             <NavLink
               key={link.to}
               to={link.to}
+              {...prefetchLinkProps(link.to)}
               className={({ isActive }) =>
                 cn(
                   "block rounded-xl px-4 py-3 text-sm font-semibold transition",
@@ -222,7 +225,7 @@ export default function Navbar() {
 
           <NavLink
             to="/shortlist"
-            tabIndex={mobileOpen ? 0 : -1}
+            {...prefetchLinkProps("/shortlist")}
             className={({ isActive }) =>
               cn(
                 "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold transition",

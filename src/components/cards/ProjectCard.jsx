@@ -138,7 +138,7 @@ export default function ProjectCard({
             <a
               href={project.live_url}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="btn btn-primary px-3 py-2 text-xs"
             >
               <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -149,7 +149,7 @@ export default function ProjectCard({
             <a
               href={project.repo_url}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="btn btn-ghost px-3 py-2 text-xs"
             >
               <Github className="h-3.5 w-3.5" aria-hidden="true" />

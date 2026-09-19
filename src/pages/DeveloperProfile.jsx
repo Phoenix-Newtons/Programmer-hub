@@ -106,6 +106,7 @@ export default function DeveloperProfile() {
         <EmptyState
           icon={UserRound}
           tone="rose"
+          level={1}
           title="Profile not available"
           description="This developer profile could not be loaded. It may have been removed, or the profiles table is not set up yet."
           action={
@@ -228,20 +229,20 @@ export default function DeveloperProfile() {
           {(person.github || person.linkedin || person.website) && (
             <div className="mt-6 flex flex-wrap gap-3">
               {person.github ? (
-                <a href={person.github} target="_blank" rel="noreferrer" className="btn btn-ghost text-sm">
+                <a href={person.github} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
                   <Github className="h-4 w-4" aria-hidden="true" />
                   {hostFromUrl(person.github)}
                   <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 </a>
               ) : null}
               {person.linkedin ? (
-                <a href={person.linkedin} target="_blank" rel="noreferrer" className="btn btn-ghost text-sm">
+                <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
                   <Linkedin className="h-4 w-4" aria-hidden="true" />
                   LinkedIn
                 </a>
               ) : null}
               {person.website ? (
-                <a href={person.website} target="_blank" rel="noreferrer" className="btn btn-ghost text-sm">
+                <a href={person.website} target="_blank" rel="noopener noreferrer" className="btn btn-ghost text-sm">
                   <ExternalLink className="h-4 w-4" aria-hidden="true" />
                   {hostFromUrl(person.website)}
                 </a>

@@ -274,6 +274,7 @@ export default function Developers() {
         ) : (
           <EmptyState
             icon={Users}
+            level={2}
             title={isFiltered ? "No developers match those filters" : "The directory is empty"}
             description={
               isFiltered

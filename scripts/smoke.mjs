@@ -2,6 +2,10 @@
  * Headless quality gate: renders every route and every page component in jsdom
  * through Vite's SSR pipeline, then asserts key content is present.
  *
+ * Also runs a structural accessibility audit (one h1 per screen, no skipped
+ * heading levels, labelled controls, named buttons, valid ARIA references) and
+ * fails on unexpected console errors.
+ *
  * Catches render-time crashes (bad imports, invalid hooks, undefined access)
  * without needing a real browser.
  *
@@ -125,6 +129,82 @@ Object.defineProperty(window, "localStorage", { value: globalThis.localStorage, 
 globalThis.Blob = window.Blob;
 globalThis.URL.createObjectURL = () => "blob:smoke";
 
+/**
+ * Lightweight accessibility audit for a rendered document.
+ *
+ * Not a replacement for axe, but it catches the structural mistakes that
+ * actually happen in this codebase: missing/duplicated h1s, skipped heading
+ * levels, unlabelled controls, nameless buttons, dangling ARIA references and
+ * unsafe external links.
+ */
+function auditA11y(html) {
+  const doc = new JSDOM(`<!doctype html><html><body>${html}</body></html>`).window.document;
+  const issues = [];
+
+  const h1s = doc.querySelectorAll("h1");
+  if (h1s.length !== 1) issues.push(`${h1s.length} <h1> element(s) — expected exactly 1`);
+
+  let previousLevel = 0;
+  for (const heading of doc.querySelectorAll("h1, h2, h3, h4, h5, h6")) {
+    const level = Number(heading.tagName[1]);
+    if (previousLevel && level > previousLevel + 1) {
+      issues.push(`heading jump h${previousLevel} → h${level} at "${heading.textContent.trim().slice(0, 40)}"`);
+    }
+    previousLevel = level;
+  }
+
+  for (const img of doc.querySelectorAll("img")) {
+    if (img.getAttribute("alt") === null) issues.push(`<img> without alt (${(img.getAttribute("src") || "").slice(0, 40)})`);
+  }
+
+  const accessibleName = (element) =>
+    Boolean(
+      element.getAttribute("aria-label")?.trim() ||
+        element.getAttribute("title")?.trim() ||
+        element.textContent.trim() ||
+        (element.getAttribute("aria-labelledby") || "")
+          .split(/\s+/)
+          .some((id) => id && doc.getElementById(id)?.textContent.trim())
+    );
+
+  for (const button of doc.querySelectorAll("button")) {
+    if (!accessibleName(button)) issues.push(`button without an accessible name (${button.className || "no class"})`);
+  }
+
+  const labelledControls = new Set([...doc.querySelectorAll("label[for]")].map((label) => label.getAttribute("for")));
+  for (const control of doc.querySelectorAll("input, select, textarea")) {
+    const type = (control.getAttribute("type") || "").toLowerCase();
+    if (["hidden", "submit", "button", "reset", "image", "checkbox", "radio"].includes(type)) continue;
+    const labelled =
+      labelledControls.has(control.id) ||
+      control.closest("label") ||
+      control.getAttribute("aria-label") ||
+      control.getAttribute("aria-labelledby");
+    if (!labelled) issues.push(`unlabelled <${control.tagName.toLowerCase()}${control.id ? ` id="${control.id}"` : ""}>`);
+  }
+
+  const ids = [...doc.querySelectorAll("[id]")].map((element) => element.id);
+  const duplicates = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+  if (duplicates.length) issues.push(`duplicate id(s): ${duplicates.join(", ")}`);
+
+  for (const element of doc.querySelectorAll("[aria-labelledby], [aria-describedby], [aria-controls]")) {
+    for (const attribute of ["aria-labelledby", "aria-describedby", "aria-controls"]) {
+      const value = element.getAttribute(attribute);
+      if (!value) continue;
+      for (const id of value.split(/\s+/)) {
+        if (id && !doc.getElementById(id)) issues.push(`${attribute}="${id}" points at a missing id`);
+      }
+    }
+  }
+
+  for (const link of doc.querySelectorAll('a[target="_blank"]')) {
+    const rel = link.getAttribute("rel") || "";
+    if (!/noopener|noreferrer/.test(rel)) issues.push(`target=_blank without rel="noopener": ${link.getAttribute("href")}`);
+  }
+
+  return issues;
+}
+
 const consoleErrors = [];
 const originalError = console.error;
 console.error = (...args) => {
@@ -169,8 +249,13 @@ try {
   console.log("\nRouting (App shell):");
   for (const page of PAGES) {
     try {
-      renderToString(wrap(React.createElement(App), page.route));
-      console.log(`  ✓ ${page.route}`);
+      const html = renderToString(wrap(React.createElement(App), page.route));
+      const issues = auditA11y(html);
+      if (issues.length) {
+        fail(`${page.route} a11y → ${issues.join("; ")}`);
+      } else {
+        console.log(`  ✓ ${page.route}`);
+      }
     } catch (error) {
       fail(`${page.route} → ${error.message}`);
     }
@@ -203,6 +288,10 @@ try {
       }
       if (text.length < 200 && !page.loadingOnly) {
         fail(`${page.route} rendered only ${text.length} chars — page looks empty`);
+        ok = false;
+      }
+      for (const issue of auditA11y(html)) {
+        fail(`${page.route} a11y → ${issue}`);
         ok = false;
       }
       if (ok) console.log(`  ✓ ${page.route.padEnd(22)} ${text.length} chars`);

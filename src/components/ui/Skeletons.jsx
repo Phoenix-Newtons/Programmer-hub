@@ -53,6 +53,7 @@ export function RowSkeleton({ count = 4, className }) {
 export function ProfileSkeleton() {
   return (
     <div className="container-page py-12" role="status" aria-live="polite">
+      <h1 className="sr-only">Developer profile</h1>
       <span className="sr-only">Loading developer profile…</span>
       <div aria-hidden="true">
         <div className="skeleton h-40 w-full rounded-3xl" />
@@ -86,7 +87,7 @@ export function PageLoader({ label = "Loading…" }) {
           {"</>"}
         </span>
       </span>
-      <p className="text-sm font-medium text-muted">{label}</p>
+      <h1 className="text-sm font-medium text-muted">{label}</h1>
     </div>
   );
 }

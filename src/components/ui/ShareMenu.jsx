@@ -83,7 +83,7 @@ export default function ShareMenu({ title = "", text = "", url, className, compa
             role="menuitem"
             href={`https://wa.me/?text=${encodedText}%20${encodedUrl}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-ink-soft transition hover:bg-white/5"
           >
             <Link2 className="h-4 w-4" />
@@ -93,7 +93,7 @@ export default function ShareMenu({ title = "", text = "", url, className, compa
             role="menuitem"
             href={`https://x.com/intent/post?text=${encodedText}&url=${encodedUrl}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm text-ink-soft transition hover:bg-white/5"
           >
             <Twitter className="h-4 w-4" />

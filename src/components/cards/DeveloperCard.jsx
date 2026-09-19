@@ -123,7 +123,7 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
           <a
             href={whatsapp}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className="btn btn-success px-3 py-2 text-xs"
             title="Chat on WhatsApp"
           >
@@ -146,7 +146,7 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
             <a
               href={profile.github}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 transition hover:text-ink"
             >
               <Github className="h-3.5 w-3.5" aria-hidden="true" />
@@ -157,7 +157,7 @@ export default function DeveloperCard({ profile, featured = false, compact = fal
             <a
               href={profile.linkedin}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 transition hover:text-ink"
             >
               <Linkedin className="h-3.5 w-3.5" aria-hidden="true" />

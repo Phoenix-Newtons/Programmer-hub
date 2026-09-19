@@ -370,7 +370,7 @@ export default function Home() {
                   key={item.label}
                   href={item.href}
                   target={item.href.startsWith("http") ? "_blank" : undefined}
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-4 transition hover:border-white/35 hover:bg-white/10"
                 >
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/10 text-white">

@@ -298,6 +298,7 @@ export default function Dashboard() {
         <div className="mx-auto max-w-2xl">
           <EmptyState
             icon={UserRound}
+            level={1}
             title="Sign in to open your dashboard"
             description="Your dashboard is where you build your public developer profile, publish projects and post hiring roles. Sign in with Google — it takes one tap."
             action={
@@ -584,7 +585,7 @@ export default function Dashboard() {
               <a
                 href={waLink(form.whatsapp)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-emerald-300 hover:underline"
               >
                 <MessageCircle className="h-3.5 w-3.5" aria-hidden="true" />
@@ -873,7 +874,7 @@ export default function Dashboard() {
                                 <a
                                   href={application.portfolio_url}
                                   target="_blank"
-                                  rel="noreferrer"
+                                  rel="noopener noreferrer"
                                   className="inline-flex items-center gap-1.5 hover:text-brand-300"
                                 >
                                   <Globe className="h-3.5 w-3.5" aria-hidden="true" />

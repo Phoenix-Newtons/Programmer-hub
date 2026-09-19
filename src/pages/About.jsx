@@ -149,7 +149,7 @@ export default function About() {
                 <a
                   href={SITE.repo}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="chip border-white/20 bg-white/10 text-white transition hover:bg-white/20"
                 >
                   <Github className="h-3 w-3" aria-hidden="true" /> View the source
@@ -181,7 +181,7 @@ export default function About() {
         <a
           href={waLink(SITE.whatsapp)}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="card card-hover flex items-start gap-4 p-6"
         >
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-emerald-500/15 text-emerald-400">
@@ -196,7 +196,7 @@ export default function About() {
           </div>
         </a>
 
-        <a href={SITE.github} target="_blank" rel="noreferrer" className="card card-hover flex items-start gap-4 p-6">
+        <a href={SITE.github} target="_blank" rel="noopener noreferrer" className="card card-hover flex items-start gap-4 p-6">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-line-strong bg-surface text-ink">
             <Github className="h-5 w-5" />
           </span>

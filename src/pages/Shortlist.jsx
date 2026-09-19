@@ -176,6 +176,7 @@ export default function Shortlist() {
           <EmptyState
             icon={BookmarkCheck}
             tone="amber"
+            level={2}
             title="Nothing shortlisted yet"
             description="While browsing the directory, hit “Save” on anyone worth a second look. They'll collect here with their rates, stack and contact details ready to go."
             action={

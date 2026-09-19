@@ -285,7 +285,7 @@ export default function Hiring() {
             <span className="grid h-11 w-11 place-items-center rounded-xl border border-line-strong bg-brand-500/10 text-brand-300">
               <reason.icon className="h-5 w-5" aria-hidden="true" />
             </span>
-            <h3 className="mt-4 text-base font-bold text-ink">{reason.title}</h3>
+            <h2 className="mt-4 text-base font-bold text-ink">{reason.title}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">{reason.text}</p>
           </div>
         ))}
@@ -470,9 +470,9 @@ export default function Hiring() {
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
             Looking for work?
           </span>
-          <h3 className="mt-5 text-2xl font-black tracking-tight text-ink">
+          <h2 className="mt-5 text-2xl font-black tracking-tight text-ink">
             Get in front of companies that are hiring today.
-          </h3>
+          </h2>
           <p className="mt-3 text-sm leading-relaxed text-muted">
             Complete your profile, flip on &ldquo;open to work&rdquo;, publish at least one project and apply
             to roles with a short note. Developers with shipped work get replies first.
@@ -494,10 +494,10 @@ export default function Hiring() {
         </div>
 
         <div className="card p-7">
-          <h3 className="flex items-center gap-2 text-lg font-bold text-ink">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-ink">
             <Clock className="h-5 w-5 text-brand-300" aria-hidden="true" />
             Hiring FAQs
-          </h3>
+          </h2>
           <div className="mt-5">
             <Accordion items={FAQS.slice(0, 3)} />
           </div>

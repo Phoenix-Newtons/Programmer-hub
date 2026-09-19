@@ -21,7 +21,12 @@ export default function EmptyState({
   tone = "indigo",
   className,
   compact = false,
+  // Heading level of the title: `1` when the state *is* the page (no other
+  // `h1` on screen), `2` when it sits directly under the page `h1`, and the
+  // default `3` for nested states that follow a section heading.
+  level = 3,
 }) {
+  const Title = `h${Math.min(6, Math.max(1, level))}`;
   return (
     <div
       className={cn(
@@ -36,7 +41,7 @@ export default function EmptyState({
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       ) : null}
-      <h3 className="text-lg font-bold text-ink">{title}</h3>
+      <Title className="text-lg font-bold text-ink">{title}</Title>
       {description ? (
         <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">{description}</p>
       ) : null}

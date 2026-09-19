@@ -63,6 +63,8 @@ const IMPROVEMENTS = [
   "Error boundaries, offline detection and honest empty states",
   "Keyboard shortcuts, focus trapping, live regions and skip links",
   "Route-level code splitting, retrying data layer and JSON-LD metadata",
+  "A generated service worker, so repeat visits load offline and instantly",
+  "Vitest suites plus a jsdom route smoke test that runs on every push",
 ];
 
 const SELF_HOST = [

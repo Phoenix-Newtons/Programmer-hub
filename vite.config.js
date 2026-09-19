@@ -1,54 +1,13 @@
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-
-/**
- * Progressive enhancement for `sitemap.xml` / `robots.txt`.
- *
- * Those two files live in `public/` so they work with zero config, but there
- * the URLs can only be relative. When the deployment knows its own origin
- * (`VITE_SITE_URL`, or `VITE_BASE` for sub-path hosting) this plugin rewrites
- * them into absolute URLs — which crawlers prefer — and drops a `lastmod`
- * stamp into the sitemap. With no origin configured the files are shipped
- * untouched.
- */
-function seoFiles() {
-  return {
-    name: "programmers-hub:seo-files",
-    apply: "build",
-    closeBundle() {
-      const outDir = resolve(process.cwd(), "dist");
-      const base = (process.env.VITE_BASE || "/").replace(/\/+$/, "");
-      const origin = (process.env.VITE_SITE_URL || "").replace(/\/+$/, "");
-      if (!origin) return; // nothing absolute to write — keep the shipped files
-
-      const prefix = `${origin}${base}`;
-      const lastmod = new Date().toISOString().slice(0, 10);
-      const sitemapPath = resolve(outDir, "sitemap.xml");
-      const robotsPath = resolve(outDir, "robots.txt");
-
-      if (existsSync(sitemapPath)) {
-        const sitemap = readFileSync(sitemapPath, "utf8")
-          .replace(/<loc>(\/[^<]*)<\/loc>/g, (_, path) => `<loc>${prefix}${path === "/" ? "/" : path}</loc>`)
-          .replace(/<changefreq>/g, `<lastmod>${lastmod}</lastmod><changefreq>`);
-        writeFileSync(sitemapPath, sitemap);
-      }
-
-      if (existsSync(robotsPath)) {
-        const robots = readFileSync(robotsPath, "utf8")
-          .replace(/^Sitemap: .*$/m, `Sitemap: ${prefix}/sitemap.xml`);
-        writeFileSync(robotsPath, robots);
-      }
-    },
-  };
-}
+import { seoFiles, serviceWorker } from "./scripts/vite-plugins.mjs";
 
 export default defineConfig({
   // Set VITE_BASE when hosting under a sub-path (e.g. GitHub Pages).
   base: process.env.VITE_BASE || "/",
-  plugins: [react(), tailwindcss(), seoFiles()],
+  // The last two only ever run for `vite build` — see scripts/vite-plugins.mjs.
+  plugins: [react(), tailwindcss(), seoFiles(), serviceWorker()],
   // `legacy/` holds the original vanilla HTML/CSS version, kept for reference only.
   optimizeDeps: {
     entries: ["index.html", "src/**/*.{js,jsx}"],

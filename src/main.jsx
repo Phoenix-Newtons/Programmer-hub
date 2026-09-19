@@ -31,3 +31,22 @@ if (import.meta.env.DEV) {
     "color:inherit"
   );
 }
+
+/**
+ * Offline-ready production shell.
+ *
+ * `sw.js` is generated at build time (see scripts/vite-plugins.mjs) and caches
+ * the hashed bundle plus a copy of the HTML shell, so repeat visits paint
+ * instantly and a dropped connection still shows the app instead of the
+ * browser's error page. Never registered in development, where HMR needs a
+ * clean network.
+ */
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register(`${import.meta.env.BASE_URL}sw.js`, { scope: import.meta.env.BASE_URL })
+      .catch(() => {
+        /* Private mode, unsupported browser or blocked by policy — the app works regardless. */
+      });
+  });
+}

@@ -25,6 +25,7 @@ Built with **React 19 + Vite + Tailwind CSS v4**, **lucide-react** icons and
 | **Design** | Dark / light / system theme with no flash-of-wrong-theme, glassmorphism cards, aurora gradients, animated counters, toasts, responsive down to 320px |
 | **Accessibility** | Skip link, focus-trapped dialogs, live regions for results, arrow-key support in the palette, visible focus rings, reduced-motion support |
 | **Robustness** | Error boundaries per route, offline banner, retrying data layer, honest empty/error states and skeletons instead of spinners |
+| **Offline-ready** | The production build ships a generated service worker: hashed assets are precached, HTML is network-first, and a dropped connection still serves the app shell |
 | **SEO** | Per-page titles, descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD, `robots.txt`, `sitemap.xml`, web app manifest |
 
 ---
@@ -41,10 +42,12 @@ npm run preview  # serve the production build
 ### Quality checks
 
 ```bash
-npm run lint     # ESLint (flat config)
-npm run test     # Vitest unit + component tests
-npm run smoke    # renders every route in jsdom, fails on render errors
-npm run verify   # lint + test + build + smoke in one go
+npm run lint         # ESLint (flat config)
+npm run test         # Vitest unit + component tests
+npm run build        # production bundle + service worker (dist/)
+npm run check:build  # audits the artifacts in dist/ (sitemap, robots, sw.js)
+npm run smoke        # renders every route in jsdom, fails on render errors
+npm run verify       # lint + test + build + check:build + smoke
 ```
 
 ---

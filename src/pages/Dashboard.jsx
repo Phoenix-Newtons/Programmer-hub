@@ -785,7 +785,13 @@ export default function Dashboard() {
                   <Button variant="ghost" icon={FileText} onClick={exportApplications}>
                     Export CSV
                   </Button>
-                  <Button variant="ghost" icon={RefreshCw} onClick={applications.refetch}>
+                  <Button
+                    variant="ghost"
+                    icon={RefreshCw}
+                    // Keep the current list on screen while the newest
+                    // applications load in.
+                    onClick={() => applications.refresh({ silent: true })}
+                  >
                     Refresh
                   </Button>
                 </>

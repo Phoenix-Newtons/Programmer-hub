@@ -1,33 +1,62 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import DemoBanner from "./DemoBanner";
+import OfflineBanner from "./OfflineBanner";
+import CommandPalette from "./CommandPalette";
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
-  }, [pathname]);
-  return null;
-}
-
+/**
+ * App shell: skip link, banner stack, navigation, routed content and footer.
+ * Also restores scroll position and announces route changes to screen readers.
+ */
 export default function Layout() {
-  return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-      {/* Ambient background */}
-      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10">
-        <div className="absolute inset-0 grid-lines" />
-        <div className="aurora absolute inset-x-0 top-0 h-[620px] overflow-hidden" />
-      </div>
+  const { pathname, hash } = useLocation();
+  const announcerRef = useRef(null);
 
-      <ScrollToTop />
+  useEffect(() => {
+    if (hash) {
+      try {
+        const target = document.querySelector(hash);
+        if (target && typeof target.scrollIntoView === "function") {
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+      } catch {
+        /* malformed hash — fall through to a normal scroll reset */
+      }
+    }
+    window.scrollTo?.({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname, hash]);
+
+  // Polite route announcement for assistive tech.
+  useEffect(() => {
+    if (!announcerRef.current) return;
+    const label = pathname === "/" ? "Home" : pathname.replace(/^\//, "").replace(/\//g, " · ");
+    announcerRef.current.textContent = `Navigated to ${label}`;
+  }, [pathname]);
+
+  return (
+    <div className="flex min-h-dvh flex-col bg-bg text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[120] focus:rounded-xl focus:bg-surface-solid focus:px-4 focus:py-2.5 focus:text-sm focus:font-bold focus:text-ink focus:shadow-soft focus:outline focus:outline-2 focus:outline-brand-400"
+      >
+        Skip to content
+      </a>
+
       <DemoBanner />
       <Navbar />
-      <main className="flex-1">
+      <OfflineBanner />
+
+      <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>
+
       <Footer />
+      <CommandPalette />
+
+      <span ref={announcerRef} className="sr-only" role="status" aria-live="polite" />
     </div>
   );
 }

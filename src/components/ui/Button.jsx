@@ -8,13 +8,17 @@ const VARIANTS = {
   ghost: "btn-ghost",
   success: "btn-success",
   danger: "btn-danger",
-  subtle: "text-ink-soft hover:bg-white/10 hover:text-ink",
+  soft: "btn-soft",
+  subtle: "btn-subtle",
+  link: "btn-link",
 };
 
 const SIZES = {
+  xs: "px-2.5 py-1 text-[0.72rem] rounded-lg gap-1.5",
   sm: "px-3 py-1.5 text-[0.78rem] rounded-lg",
   md: "px-4 py-2.5 text-sm rounded-xl",
   lg: "px-6 py-3.5 text-[0.95rem] rounded-xl",
+  icon: "h-10 w-10 rounded-xl p-0",
 };
 
 const Button = forwardRef(function Button(
@@ -27,8 +31,11 @@ const Button = forwardRef(function Button(
     loading = false,
     icon: Icon,
     iconRight: IconRight,
+    fullWidth = false,
     className,
     children,
+    type = "button",
+    disabled = false,
     ...props
   },
   ref
@@ -37,15 +44,20 @@ const Button = forwardRef(function Button(
     "btn",
     VARIANTS[variant] || VARIANTS.primary,
     SIZES[size] || SIZES.md,
+    fullWidth && "w-full",
     loading && "cursor-wait",
     className
   );
 
   const content = (
     <>
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : Icon ? <Icon className="h-4 w-4" /> : null}
+      {loading ? (
+        <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden="true" />
+      ) : Icon ? (
+        <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      ) : null}
       {children}
-      {IconRight && !loading ? <IconRight className="h-4 w-4" /> : null}
+      {IconRight && !loading ? <IconRight className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}
     </>
   );
 
@@ -58,13 +70,14 @@ const Button = forwardRef(function Button(
   }
 
   if (as === "a" || href) {
+    const external = href?.startsWith("http");
     return (
       <a
         ref={ref}
         href={href}
         className={classes}
-        target={href?.startsWith("http") ? "_blank" : undefined}
-        rel={href?.startsWith("http") ? "noreferrer" : undefined}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noreferrer noopener" : undefined}
         {...props}
       >
         {content}
@@ -73,7 +86,14 @@ const Button = forwardRef(function Button(
   }
 
   return (
-    <button ref={ref} className={classes} disabled={loading || props.disabled} {...props}>
+    <button
+      ref={ref}
+      type={type}
+      className={classes}
+      disabled={loading || disabled}
+      aria-busy={loading || undefined}
+      {...props}
+    >
       {content}
     </button>
   );

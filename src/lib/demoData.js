@@ -214,3 +214,40 @@ export const DEMO_JOBS = [
     created_at: daysAgo(11),
   },
 ];
+
+/**
+ * Fictional applications so the dashboard "Applications received" inbox can be
+ * previewed with sample data. They belong to the demo jobs above.
+ */
+export const DEMO_APPLICATIONS = [
+  {
+    id: "demo-a1",
+    job_id: "demo-j1",
+    applicant_name: "Ada Nakato",
+    applicant_email: "ada@example.com",
+    portfolio_url: "https://example.com/ada",
+    message:
+      "I led the rebuild of a lending dashboard on React + Supabase last year, including the settlement reconciliation views. I can start within two weeks and I'm comfortable owning the front end end-to-end.",
+    created_at: daysAgo(1),
+  },
+  {
+    id: "demo-a2",
+    job_id: "demo-j1",
+    applicant_name: "Sam Mwangi",
+    applicant_email: "sam@example.com",
+    portfolio_url: "https://example.com/sam",
+    message:
+      "Design systems and accessibility are my focus, so the portal's component library is the part that excites me most. Portfolio includes three dashboards shipped to production.",
+    created_at: daysAgo(2),
+  },
+  {
+    id: "demo-a3",
+    job_id: "demo-j3",
+    applicant_name: "Idris Hassan",
+    applicant_email: "idris@example.com",
+    portfolio_url: "https://example.com/idris",
+    message:
+      "I have moved four products from hand-rolled deploys to containerised pipelines, two of them in health. Happy to start with an audit and a staging environment in the first two weeks.",
+    created_at: daysAgo(4),
+  },
+];

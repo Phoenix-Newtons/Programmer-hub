@@ -2,6 +2,10 @@
 --  Programmer's Hub — Supabase schema
 --  Run this whole file in Supabase → SQL Editor.
 --  Safe to re-run: every statement is IF NOT EXISTS / DROP POLICY IF EXISTS.
+--
+--  Tables   : profiles, projects, jobs, applications
+--  Storage  : public "avatars" bucket with owner-only writes
+--  Security : row level security on every table
 -- =====================================================================
 
 create extension if not exists "pgcrypto";
@@ -32,6 +36,9 @@ create table if not exists public.profiles (
   updated_at    timestamptz   default now()
 );
 
+create index if not exists profiles_featured_idx   on public.profiles (featured desc, created_at desc);
+create index if not exists profiles_open_to_work_idx on public.profiles (open_to_work) where open_to_work;
+
 -- ---------------------------------------------------------------------
 -- projects: portfolio items published by members
 -- ---------------------------------------------------------------------
@@ -49,8 +56,10 @@ create table if not exists public.projects (
   created_at   timestamptz default now()
 );
 
-create index if not exists projects_user_id_idx on public.projects (user_id);
+create index if not exists projects_user_id_idx    on public.projects (user_id);
 create index if not exists projects_created_at_idx on public.projects (created_at desc);
+create index if not exists projects_tags_idx       on public.projects using gin (tags);
+create index if not exists projects_featured_idx   on public.projects (featured) where featured;
 
 -- ---------------------------------------------------------------------
 -- jobs: hiring board listings
@@ -70,7 +79,24 @@ create table if not exists public.jobs (
   created_at     timestamptz default now()
 );
 
+-- v2: roles can be closed instead of deleted, so applications are kept.
+alter table public.jobs
+  add column if not exists status text not null default 'open';
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'jobs_status_check'
+  ) then
+    alter table public.jobs
+      add constraint jobs_status_check check (status in ('open', 'closed'));
+  end if;
+end $$;
+
 create index if not exists jobs_created_at_idx on public.jobs (created_at desc);
+create index if not exists jobs_user_id_idx    on public.jobs (user_id);
+create index if not exists jobs_status_idx     on public.jobs (status);
+create index if not exists jobs_skills_idx     on public.jobs using gin (skills);
 
 -- ---------------------------------------------------------------------
 -- applications: developer applications to a role
@@ -84,6 +110,9 @@ create table if not exists public.applications (
   message          text,
   created_at       timestamptz default now()
 );
+
+create index if not exists applications_job_id_idx     on public.applications (job_id);
+create index if not exists applications_created_at_idx on public.applications (created_at desc);
 
 -- =====================================================================
 --  Row Level Security
@@ -124,7 +153,8 @@ create policy "Users insert own projects"
 drop policy if exists "Users update own projects" on public.projects;
 create policy "Users update own projects"
   on public.projects for update
-  using (auth.uid() = user_id);
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 drop policy if exists "Users delete own projects" on public.projects;
 create policy "Users delete own projects"
@@ -145,22 +175,41 @@ create policy "Users insert own jobs"
 drop policy if exists "Users update own jobs" on public.jobs;
 create policy "Users update own jobs"
   on public.jobs for update
-  using (auth.uid() = user_id);
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
 
 drop policy if exists "Users delete own jobs" on public.jobs;
 create policy "Users delete own jobs"
   on public.jobs for delete
   using (auth.uid() = user_id);
 
--- applications: anyone can apply, only the job owner can read ---------
+-- applications: anyone signed in can apply, only the job owner reads --
+-- (The dashboard's "Applications received" inbox relies on the select
+--  policy below; without it the list comes back empty.)
 drop policy if exists "Anyone can apply" on public.applications;
 create policy "Anyone can apply"
   on public.applications for insert
-  with check (true);
+  with check (
+    job_id is not null
+    and length(coalesce(applicant_name, '')) between 2 and 120
+    and length(coalesce(message, '')) between 20 and 4000
+    and applicant_email like '%_@_%._%'
+  );
 
 drop policy if exists "Job owners read applications" on public.applications;
 create policy "Job owners read applications"
   on public.applications for select
+  using (
+    exists (
+      select 1 from public.jobs
+      where jobs.id = applications.job_id
+        and jobs.user_id = auth.uid()
+    )
+  );
+
+drop policy if exists "Job owners delete applications" on public.applications;
+create policy "Job owners delete applications"
+  on public.applications for delete
   using (
     exists (
       select 1 from public.jobs
@@ -198,7 +247,33 @@ create policy "Users update own avatar"
     and auth.uid()::text = (storage.foldername(name))[1]
   );
 
+drop policy if exists "Users delete own avatar" on storage.objects;
+create policy "Users delete own avatar"
+  on storage.objects for delete
+  using (
+    bucket_id = 'avatars'
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+
 -- =====================================================================
---  Optional: mark yourself verified / featured
---  update public.profiles set verified = true, featured = true where email = 'alphaluwangula@proton.me';
+--  Nice-to-have helpers
 -- =====================================================================
+
+-- Keep profiles.updated_at honest without touching application code.
+create or replace function public.touch_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end $$;
+
+drop trigger if exists profiles_touch_updated_at on public.profiles;
+create trigger profiles_touch_updated_at
+  before update on public.profiles
+  for each row execute function public.touch_updated_at();
+
+-- Mark yourself verified / featured, e.g.:
+--   update public.profiles set verified = true, featured = true
+--   where email = 'alphaluwangula@proton.me';

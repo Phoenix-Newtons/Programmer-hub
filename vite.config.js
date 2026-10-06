@@ -1,16 +1,22 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { seoFiles, serviceWorker } from "./scripts/vite-plugins.mjs";
 
 export default defineConfig({
   // Set VITE_BASE when hosting under a sub-path (e.g. GitHub Pages).
   base: process.env.VITE_BASE || "/",
-  plugins: [react(), tailwindcss()],
+  // The last two only ever run for `vite build` — see scripts/vite-plugins.mjs.
+  plugins: [react(), tailwindcss(), seoFiles(), serviceWorker()],
   // `legacy/` holds the original vanilla HTML/CSS version, kept for reference only.
   optimizeDeps: {
     entries: ["index.html", "src/**/*.{js,jsx}"],
   },
   build: {
+    target: "es2022",
+    cssCodeSplit: true,
+    sourcemap: false,
+    reportCompressedSize: false,
     rollupOptions: {
       input: "index.html",
       output: {
@@ -43,5 +49,12 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 4173,
     allowedHosts: true,
+  },
+  test: {
+    environment: "jsdom",
+    globals: true,
+    setupFiles: ["./src/test/setup.js"],
+    include: ["src/**/*.test.{js,jsx}"],
+    reporters: ["default"],
   },
 });

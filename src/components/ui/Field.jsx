@@ -13,7 +13,10 @@ export function Label({ htmlFor, children, hint, required }) {
   );
 }
 
-const Field = forwardRef(function Field({ label, error, hint, required, className, as = "input", ...props }, ref) {
+const Field = forwardRef(function Field(
+  { label, error, hint, required, className, as = "input", ...props },
+  ref
+) {
   const generatedId = useId();
   const id = props.id || generatedId;
   const Component = as;

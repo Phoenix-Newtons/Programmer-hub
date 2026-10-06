@@ -25,9 +25,7 @@ export default function SectionHeading({
           </span>
         ) : null}
         <h2 className="text-3xl font-black tracking-tight text-ink sm:text-4xl">{title}</h2>
-        {description ? (
-          <p className="mt-3 text-base leading-relaxed text-muted">{description}</p>
-        ) : null}
+        {description ? <p className="mt-3 text-base leading-relaxed text-muted">{description}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

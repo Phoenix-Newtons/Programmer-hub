@@ -18,9 +18,11 @@ import {
 import Field from "../components/ui/Field";
 import Button from "../components/ui/Button";
 import GoogleButton from "../components/auth/GoogleButton";
+import AuthErrorNotice from "../components/auth/AuthErrorNotice";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import usePageMeta from "../hooks/usePageMeta";
+import { DEFAULT_REDIRECT, sanitizeRedirectPath } from "../lib/authRedirect";
 import { SITE } from "../lib/site";
 import { friendlyError } from "../lib/utils";
 
@@ -64,10 +66,26 @@ export default function Login() {
   });
 
   const [params] = useSearchParams();
-  const redirectTo = params.get("redirect") || "/dashboard";
   const navigate = useNavigate();
   const toast = useToast();
-  const { isAuthenticated, signInWithPassword, signUpWithPassword, resetPassword } = useAuth();
+  const {
+    loading,
+    isAuthenticated,
+    authError,
+    clearAuthError,
+    signInWithPassword,
+    signUpWithPassword,
+    resetPassword,
+  } = useAuth();
+
+  /**
+   * The `?redirect=` target is **untrusted input** — anyone can craft a link.
+   * It used to be handed straight to `navigate()` and interpolated into the
+   * OAuth `redirectTo`, so `/login?redirect=//evil.example` was an open
+   * redirect off this origin. `sanitizeRedirectPath()` reduces it to a
+   * same-origin path or falls back to the dashboard.
+   */
+  const redirectTo = sanitizeRedirectPath(params.get("redirect"), DEFAULT_REDIRECT);
 
   const [mode, setMode] = useState("signin");
   const [values, setValues] = useState({ fullName: "", email: "", password: "" });
@@ -76,9 +94,18 @@ export default function Login() {
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  /**
+   * Bounce an already-signed-in visitor to their destination.
+   *
+   * The `!loading` guard matters: this page is a valid OAuth landing spot, and
+   * during the boot window `isAuthenticated` is briefly `false` while the PKCE
+   * code exchange is still in flight. Without the guard the effect can also run
+   * on the very first render before the session is known, which is what made
+   * the post-Google navigation feel inconsistent between dev and production.
+   */
   useEffect(() => {
-    if (isAuthenticated) navigate(redirectTo, { replace: true });
-  }, [isAuthenticated, navigate, redirectTo]);
+    if (!loading && isAuthenticated) navigate(redirectTo, { replace: true });
+  }, [loading, isAuthenticated, navigate, redirectTo]);
 
   function update(key, value) {
     setValues((current) => ({ ...current, [key]: value }));
@@ -102,6 +129,8 @@ export default function Login() {
     event.preventDefault();
     if (!validate()) return;
     setBusy(true);
+    // A new attempt supersedes whatever the last OAuth callback reported.
+    clearAuthError?.();
 
     if (mode === "signin") {
       const { error } = await signInWithPassword(values.email.trim(), values.password);
@@ -111,6 +140,8 @@ export default function Login() {
         return;
       }
       toast.success("Welcome back!");
+      // `onAuthStateChange` fires too, but navigating explicitly keeps the
+      // transition immediate instead of waiting on the next render pass.
       navigate(redirectTo, { replace: true });
       return;
     }
@@ -174,10 +205,21 @@ export default function Login() {
               : "Two minutes to a live developer profile. No credit card, ever."}
           </p>
 
+          {authError ? (
+            <AuthErrorNotice error={authError} onDismiss={clearAuthError} className="mt-6" />
+          ) : null}
+
           <div className="mt-7">
+            {/*
+              A relative path is passed deliberately: `AuthContext.signInWithGoogle`
+              sanitises it and re-bases it on the *current* origin. Building the
+              absolute URL here instead would bake in whatever origin this
+              component happened to render on, which is how a preview/staging
+              host ends up requesting a redirect Supabase has never allowlisted.
+            */}
             <GoogleButton
               label={mode === "signin" ? "Sign in with Google" : "Sign up with Google"}
-              redirectTo={`${window.location.origin}${redirectTo}`}
+              redirectTo={redirectTo}
               className="w-full"
             />
           </div>
@@ -207,6 +249,7 @@ export default function Login() {
                   setMode(tabItem.id);
                   setErrors({});
                   setResetSent(false);
+                  clearAuthError?.();
                 }}
                 className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
                   mode === tabItem.id

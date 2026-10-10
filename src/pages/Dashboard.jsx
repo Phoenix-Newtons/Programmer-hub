@@ -33,6 +33,7 @@ import Toggle from "../components/ui/Toggle";
 import ProjectCard from "../components/cards/ProjectCard";
 import JobCard from "../components/cards/JobCard";
 import GoogleButton from "../components/auth/GoogleButton";
+import AuthErrorNotice from "../components/auth/AuthErrorNotice";
 import ProjectFormModal from "../components/projects/ProjectFormModal";
 import JobFormModal from "../components/hiring/JobFormModal";
 import { PageLoader } from "../components/ui/Skeletons";
@@ -40,6 +41,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import useCollection from "../hooks/useCollection";
 import usePageMeta from "../hooks/usePageMeta";
+import { DEFAULT_REDIRECT, loginRedirectParam } from "../lib/authRedirect";
 import {
   deleteApplication,
   deleteJob,
@@ -90,8 +92,19 @@ const COMPLETION_FIELDS = {
 const TOTAL_SLOTS = 10;
 
 export default function Dashboard() {
-  const { loading, isAuthenticated, user, profile, displayName, avatarUrl, updateProfile, profileLoading } =
-    useAuth();
+  const {
+    loading,
+    isAuthenticated,
+    user,
+    profile,
+    displayName,
+    avatarUrl,
+    updateProfile,
+    profileLoading,
+    profileError,
+    authError,
+    clearAuthError,
+  } = useAuth();
   const toast = useToast();
   const [tab, setTab] = useState("profile");
 
@@ -308,6 +321,17 @@ export default function Dashboard() {
     return (
       <div className="container-page py-16">
         <div className="mx-auto max-w-2xl">
+          {/*
+            This is the screen the OAuth bug used to strand people on. A failed
+            Google callback landed here with `?code=…` still in the address bar
+            and **no message at all**, so the only visible outcome was "sign in
+            again" — which replayed the same dead code on every refresh.
+            `authError` now explains what actually happened.
+          */}
+          {authError ? (
+            <AuthErrorNotice error={authError} onDismiss={clearAuthError} className="mb-6" />
+          ) : null}
+
           <EmptyState
             icon={UserRound}
             level={1}
@@ -315,13 +339,21 @@ export default function Dashboard() {
             description="Your dashboard is where you build your public developer profile, publish projects and post hiring roles. Sign in with Google — it takes one tap."
             action={
               <>
-                <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
-                <Link to="/login" className="btn btn-ghost">
+                {/* Relative path — AuthContext re-bases it on the live origin. */}
+                <GoogleButton redirectTo={DEFAULT_REDIRECT} />
+                <Link to={`/login${loginRedirectParam(DEFAULT_REDIRECT)}`} className="btn btn-ghost">
                   Use email instead
                 </Link>
               </>
             }
           />
+
+          {profileError ? (
+            <p className="mt-6 text-center text-xs text-muted">
+              {friendlyError(profileError, "We could not load your profile.")}
+            </p>
+          ) : null}
+
           <p className="mt-6 text-center text-xs text-muted">
             Trouble signing in? Email{" "}
             <a href={`mailto:${SITE.supportEmail}`} className="font-semibold text-brand-300 hover:underline">

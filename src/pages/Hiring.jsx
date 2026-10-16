@@ -32,7 +32,6 @@ import ResultCount from "../components/ui/ResultCount";
 import LoadMore from "../components/ui/LoadMore";
 import ShareMenu from "../components/ui/ShareMenu";
 import { GridSkeleton } from "../components/ui/Skeletons";
-import GoogleButton from "../components/auth/GoogleButton";
 import JobFormModal from "../components/hiring/JobFormModal";
 import ApplyModal from "../components/hiring/ApplyModal";
 import useCollection from "../hooks/useCollection";
@@ -66,7 +65,7 @@ const REASONS = [
   {
     icon: ShieldCheck,
     title: "Real, verified people",
-    text: "Google sign-in and Supabase row-level security keep out anonymous and duplicated profiles.",
+    text: "Email + password sign-in, a mandatory TOTP second factor and Supabase row-level security keep out anonymous and duplicated profiles.",
   },
 ];
 
@@ -102,7 +101,7 @@ const FAQS = [
   {
     question: "How are developers verified?",
     answer:
-      "Every profile is tied to a Supabase auth identity (Google or email). Profiles marked verified have been reviewed by the hub team.",
+      "Every profile is tied to a Supabase auth identity that passed two-factor verification. Profiles marked verified have additionally been reviewed by the hub team.",
   },
   {
     question: "Can I hire for part-time or contract work?",
@@ -253,7 +252,9 @@ export default function Hiring() {
             Post a role
           </Button>
         ) : (
-          <GoogleButton redirectTo={`${window.location.origin}/hiring`} />
+          <Button to="/login?redirect=/hiring" icon={Rocket}>
+            Sign in to post a role
+          </Button>
         )}
       </PageHeading>
 
@@ -470,7 +471,9 @@ export default function Hiring() {
                     Post a role
                   </Button>
                 ) : (
-                  <GoogleButton redirectTo={`${window.location.origin}/hiring`} />
+                  <Button to="/login?redirect=/hiring" icon={Rocket}>
+                    Sign in to post a role
+                  </Button>
                 )
               }
             />

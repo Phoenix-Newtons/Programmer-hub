@@ -291,7 +291,7 @@ export default function Developers() {
             description={
               isFiltered
                 ? "Try a different skill, clear the search box, or browse everyone on the hub."
-                : "No one has published a profile yet. Sign in with Google and claim the first spot."
+                : "No one has published a profile yet. Create an account and claim the first spot."
             }
             action={
               isFiltered ? (

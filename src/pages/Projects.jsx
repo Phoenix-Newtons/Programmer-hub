@@ -15,7 +15,6 @@ import LoadMore from "../components/ui/LoadMore";
 import ShareMenu from "../components/ui/ShareMenu";
 import { GridSkeleton } from "../components/ui/Skeletons";
 import ProjectFormModal from "../components/projects/ProjectFormModal";
-import GoogleButton from "../components/auth/GoogleButton";
 import useCollection from "../hooks/useCollection";
 import useDebouncedValue from "../hooks/useDebouncedValue";
 import useHotkeys from "../hooks/useHotkeys";
@@ -157,7 +156,7 @@ export default function Projects() {
         icon={FolderGit2}
         breadcrumbs={[{ label: "Projects" }]}
         title="Proof of work, not promises."
-        description="Featured builds from the hub and projects published by the community. Filter by stack, open the repo, and see how it was built."
+        description="Featured builds from the hub and projects published by the community. Filter by stack, open the repo — and preview any live demo in an embedded window without leaving the hub."
       >
         <ShareMenu title="Projects on Programmer's Hub" text="Shipped work from the hub's community." />
         {isAuthenticated ? (
@@ -171,7 +170,9 @@ export default function Projects() {
             Publish a project
           </Button>
         ) : (
-          <GoogleButton redirectTo={`${window.location.origin}/projects`} />
+          <Button to="/login?redirect=/projects" icon={Plus}>
+            Sign in to publish
+          </Button>
         )}
       </PageHeading>
 
@@ -296,7 +297,7 @@ export default function Projects() {
           eyebrow="Community"
           icon={Users}
           title="Published by the hub community"
-          description="Every signed-in member can publish shipped work with repo and live links."
+          description="Every signed-in member can publish shipped work with repo and live links — live links open in the project window."
           action={
             isAuthenticated ? (
               <Button
@@ -377,7 +378,9 @@ export default function Projects() {
                     Publish a project
                   </Button>
                 ) : (
-                  <GoogleButton redirectTo={`${window.location.origin}/projects`} />
+                  <Button to="/login?redirect=/projects" icon={Plus}>
+                    Sign in to publish
+                  </Button>
                 )
               }
             />

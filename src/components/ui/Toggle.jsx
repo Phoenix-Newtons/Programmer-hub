@@ -1,8 +1,8 @@
 import { cn } from "../../lib/utils";
 
 /**
- * Accessible switch (`role="switch"`) used for open-to-work, sample data and
- * other binary settings.
+ * Accessible switch (`role="switch"`) used for open-to-work and other binary
+ * settings.
  */
 export default function Toggle({
   checked,

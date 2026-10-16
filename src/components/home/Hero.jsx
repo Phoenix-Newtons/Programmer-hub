@@ -10,7 +10,7 @@ import {
   Sparkles,
   Zap,
 } from "lucide-react";
-import GoogleButton from "../auth/GoogleButton";
+import Button from "../ui/Button";
 import { SITE } from "../../lib/site";
 import { openPalette } from "../../lib/uiStore";
 import { pluralize } from "../../lib/utils";
@@ -67,12 +67,14 @@ export default function Hero({ stats = [], developers = 0, roles = 0 }) {
                 search them instantly.
               </>
             ) : (
-              <>Free forever for developers. Sign in with Google or email.</>
+              <>Free forever for developers. Create an account with two-factor sign-in.</>
             )}
           </p>
 
           <div className="mt-8">
-            <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
+            <Button to="/login?mode=signup" size="lg" icon={Rocket}>
+              Create my free profile
+            </Button>
           </div>
 
           <dl className="mt-10 grid max-w-lg grid-cols-3 gap-3">

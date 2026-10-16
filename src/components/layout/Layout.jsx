@@ -2,13 +2,14 @@ import { useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-import DemoBanner from "./DemoBanner";
 import OfflineBanner from "./OfflineBanner";
 import CommandPalette from "./CommandPalette";
+import MfaGate from "../auth/MfaGate";
 
 /**
- * App shell: skip link, banner stack, navigation, routed content and footer.
- * Also restores scroll position and announces route changes to screen readers.
+ * App shell: skip link, navigation, routed content, footer, command palette and
+ * the two-factor gate. Also restores scroll position and announces route
+ * changes to screen readers.
  */
 export default function Layout() {
   const { pathname, hash } = useLocation();
@@ -45,7 +46,6 @@ export default function Layout() {
         Skip to content
       </a>
 
-      <DemoBanner />
       <Navbar />
       <OfflineBanner />
 
@@ -55,6 +55,7 @@ export default function Layout() {
 
       <Footer />
       <CommandPalette />
+      <MfaGate />
 
       <span ref={announcerRef} className="sr-only" role="status" aria-live="polite" />
     </div>

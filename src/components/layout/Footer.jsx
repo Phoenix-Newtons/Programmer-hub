@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowUp, Code2, Heart, Mail, MessageCircle, Sparkles } from "lucide-react";
 import { Github, Linkedin, X as Twitter } from "../brand/BrandIcons";
-import Toggle from "../ui/Toggle";
 import { SITE } from "../../lib/site";
 import { prefetchLinkProps } from "../../lib/pages";
-import { useDemoMode, setDemoMode } from "../../lib/demo";
 import { TECHNOLOGIES } from "../../lib/site";
 import { waLink } from "../../lib/utils";
 
@@ -32,8 +30,6 @@ const COLUMNS = [
 ];
 
 export default function Footer() {
-  const demoMode = useDemoMode();
-
   return (
     <footer className="relative mt-24 border-t border-line bg-bg-elev/40">
       <div className="container-page py-14">
@@ -106,14 +102,6 @@ export default function Footer() {
               <Sparkles className="h-4 w-4" aria-hidden="true" />
               Build my profile
             </Link>
-            <Toggle
-              className="mt-4"
-              checked={demoMode}
-              onChange={setDemoMode}
-              tone="amber"
-              label="Sample data"
-              description="Preview the UI with fictional rows"
-            />
           </div>
         </div>
 

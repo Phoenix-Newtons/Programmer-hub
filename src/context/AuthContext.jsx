@@ -1,15 +1,54 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { fetchProfile, saveProfile } from "../lib/api";
+import { mfaState, sanitizeCode } from "../lib/mfa";
 
 const AuthContext = createContext(null);
 
+/**
+ * Authentication + profile state.
+ *
+ * Auth is email + password through Supabase. Every session is expected to carry
+ * a second factor: this provider exposes the TOTP MFA helpers (enroll, verify,
+ * unenroll) and the derived `mfa` state the gate and dashboard render from.
+ */
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [factors, setFactors] = useState([]);
+  const [levels, setLevels] = useState({ currentLevel: null, nextLevel: null });
+  const [mfaLoading, setMfaLoading] = useState(false);
+  // False until the factor list has been read successfully — the gate stays
+  // quiet on a flaky network instead of claiming two-factor is missing.
+  const [mfaReady, setMfaReady] = useState(false);
+
+  /** Reads the enrolled factors + this session's assurance level. */
+  const refreshMfa = useCallback(async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) {
+      setFactors([]);
+      setLevels({ currentLevel: null, nextLevel: null });
+      setMfaReady(false);
+      return;
+    }
+
+    setMfaLoading(true);
+    const [factorResult, levelResult] = await Promise.all([
+      supabase.auth.mfa.listFactors(),
+      supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+    ]);
+    setMfaLoading(false);
+
+    setFactors(factorResult.data?.all || []);
+    setLevels({
+      currentLevel: levelResult.data?.currentLevel ?? null,
+      nextLevel: levelResult.data?.nextLevel ?? null,
+    });
+    setMfaReady(!factorResult.error);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -22,16 +61,21 @@ export function AuthProvider({ children }) {
     });
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted) return;
       setSession(nextSession ?? null);
       setUser(nextSession?.user ?? null);
       setLoading(false);
+      // Let the auth client release its lock before hitting the MFA endpoints.
+      setTimeout(() => {
+        if (mounted) refreshMfa();
+      }, 0);
     });
 
     return () => {
       mounted = false;
       subscription?.subscription?.unsubscribe();
     };
-  }, []);
+  }, [refreshMfa]);
 
   const loadProfile = useCallback(async () => {
     if (!user?.id) {
@@ -49,16 +93,14 @@ export function AuthProvider({ children }) {
     loadProfile();
   }, [loadProfile]);
 
-  const signInWithGoogle = useCallback(async (redirectTo) => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: redirectTo || `${window.location.origin}/dashboard`,
-        queryParams: { access_type: "offline", prompt: "select_account" },
-      },
-    });
-    return { data, error };
-  }, []);
+  useEffect(() => {
+    if (user?.id) refreshMfa();
+    else {
+      setFactors([]);
+      setLevels({ currentLevel: null, nextLevel: null });
+      setMfaReady(false);
+    }
+  }, [user?.id, refreshMfa]);
 
   const signInWithPassword = useCallback(async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -90,9 +132,63 @@ export function AuthProvider({ children }) {
       setProfile(null);
       setSession(null);
       setUser(null);
+      setFactors([]);
+      setLevels({ currentLevel: null, nextLevel: null });
+      setMfaReady(false);
     }
     return { error };
   }, []);
+
+  /* ------------------------------------------------------------------ *
+   * Two-factor authentication (Supabase TOTP MFA)
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Starts a TOTP enrolment. Abandoned (unverified) enrolments are cleaned up
+   * first, because Supabase rejects a second factor with the same name.
+   */
+  const enrollTotp = useCallback(async (friendlyName = "Authenticator app") => {
+    const { data: existing } = await supabase.auth.mfa.listFactors();
+    const stale = (existing?.all || []).filter((factor) => factor.status !== "verified");
+    await Promise.all(
+      stale.map((factor) => supabase.auth.mfa.unenroll({ factorId: factor.id }).catch(() => null))
+    );
+
+    const { data, error } = await supabase.auth.mfa.enroll({
+      factorType: "totp",
+      friendlyName,
+    });
+    return { data, error };
+  }, []);
+
+  /**
+   * Verifies a 6-digit code against a factor. On success Supabase promotes the
+   * session to `aal2`, so we refresh the derived state.
+   */
+  const verifyMfaCode = useCallback(
+    async (factorId, code) => {
+      const clean = sanitizeCode(code);
+      if (clean.length !== 6) return { error: new Error("Enter the 6-digit code from your app.") };
+
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: clean });
+      if (!error) await refreshMfa();
+      return { data, error };
+    },
+    [refreshMfa]
+  );
+
+  /** Removes a factor. `refreshSession` applies the AAL downgrade immediately. */
+  const unenrollFactor = useCallback(
+    async (factorId) => {
+      const { data, error } = await supabase.auth.mfa.unenroll({ factorId });
+      if (!error) {
+        await supabase.auth.refreshSession().catch(() => null);
+        await refreshMfa();
+      }
+      return { data, error };
+    },
+    [refreshMfa]
+  );
 
   const updateProfile = useCallback(
     async (values) => {
@@ -110,6 +206,8 @@ export function AuthProvider({ children }) {
     [profile, user?.id, user?.email]
   );
 
+  const mfa = useMemo(() => mfaState({ factors, ...levels }), [factors, levels]);
+
   const value = useMemo(
     () => ({
       session,
@@ -119,18 +217,21 @@ export function AuthProvider({ children }) {
       profileLoading,
       isAuthenticated: Boolean(user),
       displayName:
-        profile?.name ||
-        user?.user_metadata?.full_name ||
-        user?.user_metadata?.name ||
-        (user?.email ? user.email.split("@")[0] : ""),
-      avatarUrl: profile?.avatar_url || user?.user_metadata?.avatar_url || null,
+        profile?.name || user?.user_metadata?.full_name || (user?.email ? user.email.split("@")[0] : ""),
+      avatarUrl: profile?.avatar_url || null,
       loadProfile,
-      signInWithGoogle,
       signInWithPassword,
       signUpWithPassword,
       resetPassword,
       signOut,
       updateProfile,
+      mfa,
+      mfaLoading,
+      mfaReady,
+      refreshMfa,
+      enrollTotp,
+      verifyMfaCode,
+      unenrollFactor,
     }),
     [
       session,
@@ -139,12 +240,18 @@ export function AuthProvider({ children }) {
       loading,
       profileLoading,
       loadProfile,
-      signInWithGoogle,
       signInWithPassword,
       signUpWithPassword,
       resetPassword,
       signOut,
       updateProfile,
+      mfa,
+      mfaLoading,
+      mfaReady,
+      refreshMfa,
+      enrollTotp,
+      verifyMfaCode,
+      unenrollFactor,
     ]
   );
 

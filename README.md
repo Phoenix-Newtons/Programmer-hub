@@ -12,21 +12,21 @@ Built with **React 19 + Vite + Tailwind CSS v4**, **lucide-react** icons and
 
 ## Features
 
-| Area              | What you get                                                                                                                                                   |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Auth**          | Real **Sign in with Google** (Supabase OAuth) plus email + password, password reset, password strength meter and protected routes                              |
-| **Search**        | Command palette (**⌘K** / `Ctrl+K`) that fuzzy-searches developers, projects and roles at once, plus `/`-to-focus search on every directory                    |
-| **Developers**    | Searchable, filterable, sortable directory with skill facets, "open to work" toggle, shareable filter URLs and pagination                                      |
-| **Projects**      | Featured builds from the hub + community submissions, with categories, tag links, edit/delete for owners and cover-image fallbacks                             |
-| **Hiring**        | Post roles with budget, stack and level; open/closed status; browse and filter the board; apply with a short note (falls back to email if a write fails)       |
-| **Applications**  | Every applicant lands in your dashboard inbox — only readable by the role owner, with CSV export and one-click reply                                           |
-| **Shortlist**     | Private saved-developer list in `localStorage`, with CSV export, bulk email/WhatsApp and sort options                                                          |
-| **Dashboard**     | Profile editor with avatar upload, completeness checklist, project + role management, and the applications inbox                                               |
-| **Design**        | Dark / light / system theme with no flash-of-wrong-theme, glassmorphism cards, aurora gradients, animated counters, toasts, responsive down to 320px           |
-| **Accessibility** | Skip link, focus-trapped dialogs, live regions for results, arrow-key support in the palette, visible focus rings, reduced-motion support                      |
-| **Robustness**    | Error boundaries per route, offline banner, retrying data layer, honest empty/error states and skeletons instead of spinners                                   |
-| **Offline-ready** | The production build ships a generated service worker: hashed assets are precached, HTML is network-first, and a dropped connection still serves the app shell |
-| **SEO**           | Per-page titles, descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD, `robots.txt`, `sitemap.xml`, web app manifest                                 |
+| Area              | What you get                                                                                                                                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Auth**          | Email + password through Supabase, password reset, password strength meter, protected routes — and **TOTP two-factor authentication** (Authenticator apps) enforced in the UI _and_ in Postgres row level security                  |
+| **Search**        | Command palette (**⌘K** / `Ctrl+K`) that fuzzy-searches developers, projects and roles at once, plus `/`-to-focus search on every directory                                                                                         |
+| **Developers**    | Searchable, filterable, sortable directory with skill facets, "open to work" toggle, shareable filter URLs and pagination                                                                                                           |
+| **Projects**      | Featured builds from the hub + community submissions, categories, tag links, edit/delete for owners — and every live URL opens **inside the hub in a sandboxed project window** (iframe) with reload and open-in-tab escape hatches |
+| **Hiring**        | Post roles with budget, stack and level; open/closed status; browse and filter the board; apply with a short note (falls back to email if a write fails)                                                                            |
+| **Applications**  | Every applicant lands in your dashboard inbox — only readable by the role owner, with CSV export and one-click reply                                                                                                                |
+| **Shortlist**     | Private saved-developer list in `localStorage`, with CSV export, bulk email/WhatsApp and sort options                                                                                                                               |
+| **Dashboard**     | Profile editor with avatar upload, completeness checklist, project + role management, the applications inbox, and a **Security** tab that manages TOTP authenticators                                                               |
+| **Design**        | Dark / light / system theme with no flash-of-wrong-theme, glassmorphism cards, aurora gradients, animated counters, toasts, responsive down to 320px                                                                                |
+| **Accessibility** | Skip link, focus-trapped dialogs, live regions for results, arrow-key support in the palette, visible focus rings, reduced-motion support                                                                                           |
+| **Robustness**    | Error boundaries per route, offline banner, retrying data layer, honest empty/error states and skeletons instead of spinners                                                                                                        |
+| **Offline-ready** | The production build ships a generated service worker: hashed assets are precached, HTML is network-first, and a dropped connection still serves the app shell                                                                      |
+| **SEO**           | Per-page titles, descriptions, canonical URLs, Open Graph/Twitter tags, JSON-LD, `robots.txt`, `sitemap.xml`, web app manifest                                                                                                      |
 
 ---
 
@@ -61,8 +61,9 @@ npm run verify       # lint + format + test + build + check:build + smoke
    level security, adds the public-read / owner-write policies, the `status` column on
    jobs, and keeps `updated_at` current.
 2. **Storage** → create a public bucket named `avatars` (the schema does this for you).
-3. **Authentication → Providers** → enable **Google** and add the Supabase callback URL
-   to your Google Cloud OAuth client.
+3. **Authentication → Multi-Factor Auth** → make sure **TOTP** is enabled (it is on by
+   default for new projects). The schema's `public.mfa_satisfied()` helper is what every
+   write policy checks, so two-factor is enforced in the database, not just the UI.
 4. (Optional) Put your own credentials in `.env.local` — see [`.env.example`](.env.example):
    ```bash
    VITE_SUPABASE_URL=https://xxxx.supabase.co
@@ -70,13 +71,38 @@ npm run verify       # lint + format + test + build + check:build + smoke
    ```
    Defaults already point at the public project that ships with this repo.
 
-### How "Sign in with Google" works
+### How two-factor authentication works
 
-`src/components/auth/GoogleButton.jsx` calls
-`supabase.auth.signInWithOAuth({ provider: "google" })`, so it is a **real** OAuth
-redirect — no mock session. Until you enable the Google provider in Supabase, the
-button will surface the provider error in a toast; flip the switch in the Supabase
-dashboard and it works everywhere (navbar, login page, mobile drawer, empty states).
+1. A member signs in with email + password (`supabase.auth.signInWithPassword`) and lands
+   on an `aal1` session.
+2. `src/components/auth/MfaGate.jsx` (mounted once in the app shell) then asks for the
+   second factor:
+   - **no authenticator yet** → `MfaEnroll` calls `supabase.auth.mfa.enroll({ factorType: "totp" })`,
+     renders the returned QR code (plus the plain secret), and verifies the first 6-digit
+     code through `mfa.challengeAndVerify()`.
+   - **authenticator enrolled but the session is `aal1`** → `MfaChallenge` blocks the app
+     until the code is verified; the only other way out is signing out.
+3. Everything that writes is guarded: the UI uses `useMfaGuard()` (friendly warning) and
+   Postgres uses restrictive RLS policies calling `public.mfa_satisfied()`, which requires
+   the JWT `aal` claim to be `aal2` for any account with a verified factor. A session that
+   skipped the challenge cannot insert, update or delete — policies are `as restrictive`,
+   so no permissive policy can override them.
+4. Factors are managed in **Dashboard → Security** (`MfaPanel`): list, verify and remove
+   authenticators, plus live assurance-level status.
+
+`VITE_REQUIRE_MFA=false` makes the second factor opt-in instead of required (people who
+enrol are still challenged). To make the database strict for _every_ account — even ones
+that never enrolled — swap the body of `public.mfa_satisfied()` in
+[`supabase/schema.sql`](supabase/schema.sql) for the one-line variant documented there.
+
+### Project windows (iframe)
+
+`src/components/projects/ProjectViewer.jsx` is the "project window" every
+`ProjectCard` opens for `live_url`: a sandboxed `<iframe>` inside the hub with its own title
+bar, host chip, reload button and a link that opens the page in a real tab. Frames are
+sandboxed without `allow-top-navigation` (and without `allow-same-origin` when the target is
+this app's own origin), and a hint appears after a few seconds for sites that block
+embedding through `X-Frame-Options`/CSP.
 
 ### Applications inbox
 
@@ -92,22 +118,22 @@ inbox rather than leaking anyone else's data.
 ```
 src/
 ├─ components/
-│  ├─ auth/        GoogleButton
-│  ├─ brand/       Google + GitHub / LinkedIn / X marks (not in lucide v1)
+│  ├─ auth/        MfaGate, MfaChallenge, MfaEnroll, MfaPanel
+│  ├─ brand/       GitHub / LinkedIn / X marks (not in lucide v1)
 │  ├─ cards/       DeveloperCard, ProjectCard, JobCard
 │  ├─ feedback/    ErrorBoundary
 │  ├─ hiring/      JobFormModal, ApplyModal
 │  ├─ home/        Hero
-│  ├─ layout/      Layout, Navbar, Footer, CommandPalette, DemoBanner, OfflineBanner, ThemeToggle, PageHeading
-│  ├─ projects/    ProjectFormModal
+│  ├─ layout/      Layout, Navbar, Footer, CommandPalette, OfflineBanner, ThemeToggle, PageHeading
+│  ├─ projects/    ProjectFormModal, ProjectViewer (sandboxed iframe window)
 │  └─ ui/          Button, Modal, Field, Badge, Avatar, Toggle, SearchInput, SortSelect,
 │                  FilterPills, ResultCount, LoadMore, SaveButton, ShareMenu, EmptyState,
 │                  SetupNotice, Skeletons, Accordion, Marquee, StarRating, AnimatedCounter
 ├─ context/        AuthContext, ThemeContext, ToastContext
 ├─ data/           showcase.js — featured builds shown on /projects
 ├─ hooks/          useCollection, useDocument, useUrlFilters, usePageMeta, useDebouncedValue,
-│                  useHotkeys, useFocusTrap, useOnlineStatus, useMediaQuery
-├─ lib/            api (data layer), supabase, demo (sample-data switch), search (fuzzy),
+│                  useHotkeys, useFocusTrap, useOnlineStatus, useMediaQuery, useMfaGuard
+├─ lib/            api (data layer), supabase, mfa (TOTP/AAL helpers), search (fuzzy),
 │                  shortlist, store (tiny observable store), uiStore, recents, site, utils
 ├─ pages/          Home, Developers, DeveloperProfile, Projects, Hiring, Shortlist, About, Login, Dashboard, NotFound
 └─ test/           vitest setup + zero-dependency render helper
@@ -121,20 +147,15 @@ close dialogs · `↑ ↓ ↵` navigate the palette.
 
 ---
 
-## Sample data (opt-in)
+## No sample data
 
-The app is **Supabase-only by default**: with no rows in your tables, directory and
-board pages show friendly empty states instead of invented developers.
+The hub is **Supabase-only**: there is no demo mode, no bundled rows and no
+`VITE_DEMO_DATA` switch. With empty tables the directory, board and projects pages show
+honest empty states (and a setup notice explaining how to run
+[`supabase/schema.sql`](supabase/schema.sql)) instead of invented developers.
 
-To review the UI with a populated board you have three equivalent options:
-
-1. Copy `.env.example` to `.env.local` and set `VITE_DEMO_DATA=true` before building.
-2. Click **Switch to live data**/**Explore with sample data** in the amber banner.
-3. Toggle **Sample data** in the footer, or run the "Preview with sample data"
-   action from the ⌘K palette (no rebuild needed).
-
-Sample mode reads the fictional rows in `src/lib/demoData.js` (never real people),
-shows a banner across the top, and disables all saving.
+The only content that ships with the repo is `src/data/showcase.js` — the hub's own
+open-source builds, attributed to its author and linking at real repositories.
 
 ---
 

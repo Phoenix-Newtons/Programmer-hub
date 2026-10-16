@@ -5,7 +5,6 @@ import {
   Briefcase,
   Compass,
   CornerDownLeft,
-  FlaskConical,
   FolderGit2,
   Home,
   Info,
@@ -24,8 +23,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import { prefetchPath } from "../../lib/pages";
 import { openPalette, usePalette } from "../../lib/uiStore";
-import { useDemoMode, setDemoMode } from "../../lib/demo";
-import { invalidateSearchIndex, loadSearchIndex } from "../../lib/searchIndex";
+import { loadSearchIndex } from "../../lib/searchIndex";
 import { pushRecent, useRecents } from "../../lib/recents";
 import { useShortlist } from "../../lib/shortlist";
 import { highlight, rankItems } from "../../lib/search";
@@ -118,7 +116,6 @@ export default function CommandPalette() {
   const toast = useToast();
   const { isAuthenticated, signOut, displayName, profile } = useAuth();
   const { isDark, toggleTheme } = useTheme();
-  const demoMode = useDemoMode();
   const recents = useRecents();
   const shortlist = useShortlist();
 
@@ -174,21 +171,6 @@ export default function CommandPalette() {
         icon: isDark ? Sun : MoonStar,
         keywords: "theme dark light appearance",
         run: toggleTheme,
-      },
-      {
-        id: "action-demo",
-        group: "Actions",
-        label: demoMode ? "Turn sample data off" : "Preview with sample data",
-        sublabel: demoMode ? "Back to live Supabase data" : "Fictional rows, saving disabled",
-        icon: FlaskConical,
-        keywords: "demo sample mock preview data",
-        run: () => {
-          setDemoMode(!demoMode);
-          invalidateSearchIndex();
-          toast.success(
-            demoMode ? "Sample data off — showing live data." : "Sample data on — explore the full UI."
-          );
-        },
       },
       {
         id: "action-projects",
@@ -336,18 +318,7 @@ export default function CommandPalette() {
       { group: "Go to", items: commandMatches },
       { group: "Actions", items: actionMatches },
     ].filter((section) => section.items.length);
-  }, [
-    paletteQuery,
-    index,
-    recents,
-    isAuthenticated,
-    isDark,
-    demoMode,
-    displayName,
-    signOut,
-    toast,
-    toggleTheme,
-  ]);
+  }, [paletteQuery, index, recents, isAuthenticated, isDark, displayName, signOut, toast, toggleTheme]);
 
   const flat = useMemo(() => results.flatMap((section) => section.items), [results]);
 

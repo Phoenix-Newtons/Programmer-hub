@@ -27,7 +27,6 @@ import SectionHeading from "../components/ui/SectionHeading";
 import Avatar from "../components/ui/Avatar";
 import Badge from "../components/ui/Badge";
 import Button from "../components/ui/Button";
-import GoogleButton from "../components/auth/GoogleButton";
 import { PLATFORM_PROMISES, SITE } from "../lib/site";
 import { copyToClipboard, waLink } from "../lib/utils";
 import { useToast } from "../context/ToastContext";
@@ -51,7 +50,7 @@ const VALUES = [
   {
     icon: Zap,
     title: "Fast to join",
-    text: "Sign in with Google, fill in your stack, publish a project. Two minutes from landing page to live profile.",
+    text: "Create an account, add an authenticator app, fill in your stack and publish a project. Two minutes from landing page to live profile.",
   },
 ];
 
@@ -140,7 +139,7 @@ export default function About() {
         title="A marketplace built by a developer, for developers."
         description={`${SITE.name} exists because talent is everywhere, but opportunity is not. It's a small, fast, open platform where programmers publish real work and get contacted directly.`}
       >
-        <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
+        <Button to="/login?mode=signup">Create your profile</Button>
       </PageHeading>
 
       {/* Creator */}

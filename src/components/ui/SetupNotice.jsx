@@ -1,21 +1,13 @@
-import { Database, ExternalLink, FlaskConical, RefreshCw, Terminal, WifiOff } from "lucide-react";
+import { Database, ExternalLink, RefreshCw, Terminal, WifiOff } from "lucide-react";
 import Button from "./Button";
 import { friendlyError, isNetworkError } from "../../lib/utils";
-import { setDemoMode } from "../../lib/demo";
 
 /**
  * Shown when Supabase can't serve data yet (offline, missing tables, RLS, …).
- * It keeps the UI honest, tells the developer exactly what to do next, and
- * offers a one-click way to explore the interface with sample data.
+ * It keeps the UI honest and tells the developer exactly what to do next.
  */
 export default function SetupNotice({ error, what = "profiles", onRetry, compact = false }) {
   const message = friendlyError(error);
-
-  const exploreSamples = (
-    <Button size="sm" variant="ghost" icon={FlaskConical} onClick={() => setDemoMode(true)}>
-      Explore with sample data
-    </Button>
-  );
 
   /* ---------- Offline / unreachable ---------- */
   if (isNetworkError(error)) {
@@ -37,7 +29,6 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
               Retry
             </Button>
           ) : null}
-          {exploreSamples}
         </div>
       </div>
     );
@@ -74,8 +65,9 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
               </li>
               <li className="flex gap-2">
                 <span className="font-bold text-brand-300">4.</span>
-                Enable <span className="font-mono text-ink-soft">Google</span> under Authentication →
-                Providers.
+                Turn on <span className="font-mono text-ink-soft">Multi-Factor Authentication</span> (TOTP)
+                under Authentication → Multi-Factor Auth — accounts are asked for a 6-digit code before they
+                can publish.
               </li>
             </ol>
           ) : null}
@@ -95,7 +87,6 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
                 Retry
               </Button>
             ) : null}
-            {exploreSamples}
           </div>
         </div>
       </div>

@@ -17,7 +17,6 @@ import {
 
 import Field from "../components/ui/Field";
 import Button from "../components/ui/Button";
-import GoogleButton from "../components/auth/GoogleButton";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import usePageMeta from "../hooks/usePageMeta";
@@ -34,6 +33,11 @@ const PERKS = [
     icon: FolderGit2,
     title: "A portfolio of shipped work",
     text: "Publish projects with repo and live URLs.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Two-factor protected",
+    text: "An authenticator app adds a second step to every sign-in before anything can be published.",
   },
   {
     icon: BadgeCheck,
@@ -59,7 +63,7 @@ export default function Login() {
   usePageMeta({
     title: "Sign in",
     description:
-      "Sign in or create your Programmer's Hub account with Google or email and start publishing your profile.",
+      "Sign in or create your Programmer's Hub account with email, password and two-factor authentication.",
     noIndex: true,
   });
 
@@ -69,7 +73,7 @@ export default function Login() {
   const toast = useToast();
   const { isAuthenticated, signInWithPassword, signUpWithPassword, resetPassword } = useAuth();
 
-  const [mode, setMode] = useState("signin");
+  const [mode, setMode] = useState(() => (params.get("mode") === "signup" ? "signup" : "signin"));
   const [values, setValues] = useState({ fullName: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
@@ -174,20 +178,12 @@ export default function Login() {
               : "Two minutes to a live developer profile. No credit card, ever."}
           </p>
 
-          <div className="mt-7">
-            <GoogleButton
-              label={mode === "signin" ? "Sign in with Google" : "Sign up with Google"}
-              redirectTo={`${window.location.origin}${redirectTo}`}
-              className="w-full"
-            />
-          </div>
-
-          <div className="my-6 flex items-center gap-3">
-            <span className="h-px flex-1 bg-line" />
-            <span className="text-[0.7rem] font-bold uppercase tracking-[0.16em] text-muted">
-              or use email
-            </span>
-            <span className="h-px flex-1 bg-line" />
+          <div className="mt-7 flex items-start gap-3 rounded-2xl border border-line-strong bg-surface p-4">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-brand-300" aria-hidden="true" />
+            <p className="text-xs leading-relaxed text-muted">
+              Email, password and a 6-digit code from your authenticator app. Two-factor authentication is set
+              up right after your first sign-in and is required before you can publish.
+            </p>
           </div>
 
           <div
@@ -317,7 +313,8 @@ export default function Login() {
 
           <p className="mt-6 flex items-start gap-2 rounded-xl border border-line-strong bg-surface p-3 text-xs leading-relaxed text-muted">
             <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300" aria-hidden="true" />
-            Authentication runs on Supabase. Your password never touches this app&rsquo;s code.
+            Authentication and TOTP two-factor run on Supabase. Your password never touches this app&rsquo;s
+            code.
           </p>
         </div>
 

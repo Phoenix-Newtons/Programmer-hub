@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, ExternalLink, Pencil, Sparkles, Trash2, UserRound } from "lucide-react";
+import { ArrowUpRight, ExternalLink, MonitorPlay, Pencil, Sparkles, Trash2, UserRound } from "lucide-react";
 import { Github } from "../brand/BrandIcons";
 import Badge from "../ui/Badge";
+import ProjectViewer, { canEmbed } from "../projects/ProjectViewer";
 import { cn, hostFromUrl, normalizeList, safeText, timeAgo, truncate } from "../../lib/utils";
 
 const COVERS = [
@@ -21,8 +22,10 @@ function coverFor(seed = "") {
 }
 
 /**
- * Project card. Tags link back into search, the cover image degrades to a
- * gradient if the URL is broken, and owners get edit/delete actions.
+ * Project card. The live URL opens in an embedded, sandboxed project window
+ * (`ProjectViewer`) so visitors stay on the hub; tags link back into search,
+ * the cover image degrades to a gradient if the URL is broken, and owners get
+ * edit/delete actions.
  */
 export default function ProjectCard({
   project,
@@ -33,7 +36,10 @@ export default function ProjectCard({
   className,
 }) {
   const [coverBroken, setCoverBroken] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const tags = normalizeList(project.tags);
+  // Only http(s) live URLs can live inside a frame.
+  const previewable = canEmbed(project);
   const gradient = coverFor(project.title || project.id || "ph");
   const showCover = project.cover_url && !coverBroken;
 
@@ -65,6 +71,20 @@ export default function ProjectCard({
               Featured build
             </Badge>
           </div>
+        ) : null}
+
+        {previewable ? (
+          <button
+            type="button"
+            onClick={() => setViewerOpen(true)}
+            className="absolute inset-0 grid place-items-center opacity-0 transition focus-visible:opacity-100 group-hover:opacity-100"
+            aria-label={`Open ${safeText(project.title, "project")} in the project window`}
+          >
+            <span className="flex items-center gap-2 rounded-xl border border-white/25 bg-slate-950/70 px-3.5 py-2 text-xs font-bold text-white backdrop-blur">
+              <MonitorPlay className="h-4 w-4" aria-hidden="true" />
+              Open in window
+            </span>
+          </button>
         ) : null}
 
         {(onDelete || onEdit) && (
@@ -139,7 +159,29 @@ export default function ProjectCard({
         ) : null}
 
         <div className="mt-5 flex flex-wrap gap-2 border-t border-line pt-4">
-          {project.live_url ? (
+          {previewable ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setViewerOpen(true)}
+                className="btn btn-primary px-3 py-2 text-xs"
+              >
+                <MonitorPlay className="h-3.5 w-3.5" aria-hidden="true" />
+                Preview live
+              </button>
+              <a
+                href={project.live_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-ghost px-2.5 py-2 text-xs"
+                title={`Open ${hostFromUrl(project.live_url)} in a new tab`}
+                aria-label={`Open ${hostFromUrl(project.live_url)} in a new tab`}
+              >
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </a>
+            </>
+          ) : null}
+          {project.live_url && !previewable ? (
             <a
               href={project.live_url}
               target="_blank"
@@ -167,6 +209,8 @@ export default function ProjectCard({
           ) : null}
         </div>
       </div>
+
+      <ProjectViewer project={project} open={viewerOpen} onClose={() => setViewerOpen(false)} />
     </article>
   );
 }

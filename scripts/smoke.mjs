@@ -65,7 +65,7 @@ const PAGES = [
     route: "/login",
     pattern: "/login",
     module: "/src/pages/Login.jsx",
-    expects: ["Sign in with Google", "Forgot your password"],
+    expects: ["Forgot your password", "Two-factor"],
   },
   {
     route: "/dashboard",
@@ -113,7 +113,7 @@ window.IntersectionObserver = globalThis.IntersectionObserver;
 window.scrollTo = () => {};
 globalThis.scrollTo = window.scrollTo;
 
-// localStorage stub — the app persists theme, shortlist and sample-data state.
+// localStorage stub — the app persists theme, shortlist and panel state.
 const store = new Map();
 globalThis.localStorage = {
   getItem: (key) => (store.has(key) ? store.get(key) : null),

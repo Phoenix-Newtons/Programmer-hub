@@ -5,16 +5,18 @@ import Field from "../ui/Field";
 import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import useMfaGuard from "../../hooks/useMfaGuard";
 import { createApplication } from "../../lib/api";
 import { friendlyError, isValidUrl, normalizeUrl, truncate } from "../../lib/utils";
 
 /**
- * Apply to a role. When the write fails (offline, RLS, sample data) the
+ * Apply to a role. When the write fails (offline, RLS, two-factor) the
  * application is never lost: we fall back to a pre-filled email draft.
  */
 export default function ApplyModal({ open, onClose, job }) {
   const { user, displayName, profile } = useAuth();
   const toast = useToast();
+  const { guard } = useMfaGuard();
   const [values, setValues] = useState({ name: "", email: "", portfolio: "", message: "" });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -58,6 +60,8 @@ export default function ApplyModal({ open, onClose, job }) {
     if (values.message.trim().length < 20) next.message = "Write at least a couple of sentences.";
     setErrors(next);
     if (Object.keys(next).length) return;
+    // Signed-in applicants need a verified second factor; guests apply by email.
+    if (user && !guard("apply to a role")) return;
 
     setSaving(true);
     const payload = {

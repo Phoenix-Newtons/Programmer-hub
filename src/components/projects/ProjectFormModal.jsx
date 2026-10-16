@@ -6,6 +6,7 @@ import Field from "../ui/Field";
 import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import useMfaGuard from "../../hooks/useMfaGuard";
 import { createProject, updateProject } from "../../lib/api";
 import { cn, friendlyError, isValidUrl, normalizeUrl, normalizeList } from "../../lib/utils";
 import { PROJECT_FILTERS } from "../../lib/site";
@@ -22,6 +23,7 @@ const EMPTY = {
 export default function ProjectFormModal({ open, onClose, onSaved, project }) {
   const { user, displayName } = useAuth();
   const toast = useToast();
+  const { guard } = useMfaGuard();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -64,9 +66,10 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
   async function handleSubmit(event) {
     event.preventDefault();
     if (!user) {
-      toast.warning("Sign in with Google or email to publish a project.");
+      toast.warning("Sign in to publish a project.");
       return;
     }
+    if (!guard(isEditing ? "edit a project" : "publish a project")) return;
     if (!validate()) return;
 
     setSaving(true);
@@ -195,6 +198,7 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
           />
           <Field
             label="Live URL"
+            hint="opens in the hub"
             value={values.live_url}
             onChange={(event) => update("live_url", event.target.value)}
             error={errors.live_url}
@@ -213,8 +217,9 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
 
         <p className="flex items-start gap-2 rounded-xl border border-line-strong bg-surface p-3 text-xs leading-relaxed text-muted">
           <Tags className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand-300" />
-          Projects are public. Anyone on the hub can open your repo and live links, so share work you&rsquo;re
-          proud of.
+          Projects are public. Your live URL opens inside the hub in a sandboxed window (visitors can still
+          pop out to a real tab), so share work you&rsquo;re proud of. Sites that block embedding simply open
+          in a new tab instead.
         </p>
       </form>
     </Modal>

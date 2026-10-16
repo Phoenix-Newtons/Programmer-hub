@@ -5,7 +5,8 @@
 --
 --  Tables   : profiles, projects, jobs, applications
 --  Storage  : public "avatars" bucket with owner-only writes
---  Security : row level security on every table
+--  Security : row level security on every table + TOTP two-factor (AAL2)
+--             enforcement for every write
 -- =====================================================================
 
 create extension if not exists "pgcrypto";
@@ -219,6 +220,125 @@ create policy "Job owners delete applications"
   );
 
 -- =====================================================================
+--  Two-factor authentication (TOTP MFA) enforcement
+--
+--  Supabase records how strong the current session is in the JWT's `aal`
+--  claim: `aal1` = email + password only, `aal2` = the session also passed a
+--  TOTP challenge from an authenticator app.
+--
+--  `public.mfa_satisfied()` is the single rule every write policy checks:
+--
+--    • account has a verified TOTP factor → the session MUST be aal2
+--    • account has no factor yet          → aal1 is still accepted, so nobody
+--      is trapped out of their own data before they enrol
+--
+--  The app pushes every member through enrolment right after sign-in, so in
+--  practice writes are always second-factor protected. To make the database
+--  strict for absolutely everyone (including accounts that never enrolled),
+--  replace the function body with:
+--
+--    select coalesce((select auth.jwt() ->> 'aal'), 'aal1') = 'aal2';
+--
+--  Enable TOTP in the dashboard under Authentication → Multi-Factor Auth
+--  (TOTP is on by default for new projects).
+-- =====================================================================
+
+create or replace function public.mfa_satisfied()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select array[coalesce((select auth.jwt() ->> 'aal'), 'aal1')] <@ (
+    select case
+      when count(id) > 0 then array['aal2']
+      else array['aal1', 'aal2']
+    end
+    from auth.mfa_factors
+    where user_id = (select auth.uid()) and status = 'verified'
+  );
+$$;
+
+revoke all on function public.mfa_satisfied() from public;
+grant execute on function public.mfa_satisfied() to authenticated, anon;
+
+-- Restrictive policies AND with the owner policies above, so a session that
+-- has not passed the second factor simply cannot insert, update or delete —
+-- no matter what any permissive policy allows.
+
+drop policy if exists "MFA required to write profiles" on public.profiles;
+create policy "MFA required to write profiles"
+  on public.profiles as restrictive for insert
+  to authenticated
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to update profiles" on public.profiles;
+create policy "MFA required to update profiles"
+  on public.profiles as restrictive for update
+  to authenticated
+  using (public.mfa_satisfied())
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to write projects" on public.projects;
+create policy "MFA required to write projects"
+  on public.projects as restrictive for insert
+  to authenticated
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to update projects" on public.projects;
+create policy "MFA required to update projects"
+  on public.projects as restrictive for update
+  to authenticated
+  using (public.mfa_satisfied())
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to delete projects" on public.projects;
+create policy "MFA required to delete projects"
+  on public.projects as restrictive for delete
+  to authenticated
+  using (public.mfa_satisfied());
+
+drop policy if exists "MFA required to write jobs" on public.jobs;
+create policy "MFA required to write jobs"
+  on public.jobs as restrictive for insert
+  to authenticated
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to update jobs" on public.jobs;
+create policy "MFA required to update jobs"
+  on public.jobs as restrictive for update
+  to authenticated
+  using (public.mfa_satisfied())
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to delete jobs" on public.jobs;
+create policy "MFA required to delete jobs"
+  on public.jobs as restrictive for delete
+  to authenticated
+  using (public.mfa_satisfied());
+
+-- Applications: signed-in applicants and the role owner both need a verified
+-- session; guests can still apply (they post from the public board).
+drop policy if exists "MFA required to apply" on public.applications;
+create policy "MFA required to apply"
+  on public.applications as restrictive for insert
+  to authenticated
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to read applications" on public.applications;
+create policy "MFA required to read applications"
+  on public.applications as restrictive for select
+  to authenticated
+  using (public.mfa_satisfied());
+
+drop policy if exists "MFA required to delete applications" on public.applications;
+create policy "MFA required to delete applications"
+  on public.applications as restrictive for delete
+  to authenticated
+  using (public.mfa_satisfied());
+
+-- =====================================================================
 --  Storage: public avatars bucket
 --  (Storage policies live in the storage schema)
 -- =====================================================================
@@ -254,6 +374,25 @@ create policy "Users delete own avatar"
     bucket_id = 'avatars'
     and auth.uid()::text = (storage.foldername(name))[1]
   );
+
+-- Avatars: only a session that passed its second factor may change files.
+drop policy if exists "MFA required to upload avatars" on storage.objects;
+create policy "MFA required to upload avatars"
+  on storage.objects as restrictive for insert
+  to authenticated
+  with check (public.mfa_satisfied());
+
+drop policy if exists "MFA required to update avatars" on storage.objects;
+create policy "MFA required to update avatars"
+  on storage.objects as restrictive for update
+  to authenticated
+  using (public.mfa_satisfied());
+
+drop policy if exists "MFA required to delete avatars" on storage.objects;
+create policy "MFA required to delete avatars"
+  on storage.objects as restrictive for delete
+  to authenticated
+  using (public.mfa_satisfied());
 
 -- =====================================================================
 --  Nice-to-have helpers

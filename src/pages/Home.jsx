@@ -40,7 +40,7 @@ const STEPS = [
   {
     icon: Wand2,
     title: "Create your profile",
-    text: "Sign in with Google, fill in your stack, rate, location and contact links. It takes about two minutes.",
+    text: "Create an account, switch on two-factor, then fill in your stack, rate, location and contact links. It takes about two minutes.",
   },
   {
     icon: FolderGit2,
@@ -63,7 +63,7 @@ const FEATURES = [
   {
     icon: ShieldCheck,
     title: "Verified identity",
-    text: "Google sign-in plus Supabase row-level security means profiles belong to real people.",
+    text: "Two-factor sign-in plus Supabase row-level security means profiles belong to real people.",
   },
   {
     icon: Layers,
@@ -193,7 +193,7 @@ export default function Home() {
             <EmptyState
               icon={Users}
               title="No developer profiles yet"
-              description="Be the first to publish a profile. Sign in with Google, complete your details and you'll show up right here."
+              description="Be the first to publish a profile. Create an account, complete your details and you'll show up right here."
               action={
                 <>
                   <Button to="/dashboard" icon={Rocket}>

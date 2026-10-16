@@ -6,6 +6,7 @@ import Field from "../ui/Field";
 import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
+import useMfaGuard from "../../hooks/useMfaGuard";
 import { createJob, updateJob } from "../../lib/api";
 import { EXPERIENCE_LEVELS, JOB_TYPES } from "../../lib/site";
 import { friendlyError, normalizeList } from "../../lib/utils";
@@ -27,6 +28,7 @@ const EMPTY = {
 export default function JobFormModal({ open, onClose, onSaved, job }) {
   const { user, displayName, profile } = useAuth();
   const toast = useToast();
+  const { guard } = useMfaGuard();
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -79,6 +81,7 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
       toast.warning("Sign in to post a role.");
       return;
     }
+    if (!guard(isEditing ? "edit a role" : "post a role")) return;
     if (!validate()) return;
 
     setSaving(true);

@@ -1,11 +1,11 @@
 import { useCallback, useSyncExternalStore } from "react";
 
 /**
- * Minimal observable store used for app-wide client state (theme, demo mode,
- * shortlist, data revision). Zero dependencies and SSR-safe: every store works
- * with a real `localStorage` when available and silently falls back to memory.
+ * Minimal observable store used for app-wide client state (theme, shortlist,
+ * data revision). Zero dependencies and SSR-safe: every store works with a real
+ * `localStorage` when available and silently falls back to memory.
  *
- *   const store = createStore({ count: 0 }, { storageKey: "demo:count" });
+ *   const store = createStore({ count: 0 }, { storageKey: "ph:count" });
  *   store.set({ count: 1 });               // or store.set((s) => ({ ...s }))
  *   const { count } = useStore(store);
  */
@@ -76,9 +76,9 @@ export function useStore(store) {
 
 /* ------------------------------------------------------------------ *
  * Data revision bus
- * Any successful write (publish, edit, delete, demo toggle) bumps the
- * revision; every `useCollection` re-runs its fetcher so the whole app
- * stays consistent without a state library.
+ * Any successful write (publish, edit, delete) bumps the revision; every
+ * `useCollection` re-runs its fetcher so the whole app stays consistent
+ * without a state library.
  * ------------------------------------------------------------------ */
 const revisionStore = createStore({ revision: 0 });
 

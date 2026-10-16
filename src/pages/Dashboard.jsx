@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   Briefcase,
   Check,
@@ -19,6 +18,7 @@ import {
   Plus,
   RefreshCw,
   Save,
+  ShieldCheck,
   Trash2,
   UserRound,
 } from "lucide-react";
@@ -32,13 +32,14 @@ import EmptyState from "../components/ui/EmptyState";
 import Toggle from "../components/ui/Toggle";
 import ProjectCard from "../components/cards/ProjectCard";
 import JobCard from "../components/cards/JobCard";
-import GoogleButton from "../components/auth/GoogleButton";
 import ProjectFormModal from "../components/projects/ProjectFormModal";
+import MfaPanel from "../components/auth/MfaPanel";
 import JobFormModal from "../components/hiring/JobFormModal";
 import { PageLoader } from "../components/ui/Skeletons";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import useCollection from "../hooks/useCollection";
+import useMfaGuard from "../hooks/useMfaGuard";
 import usePageMeta from "../hooks/usePageMeta";
 import {
   deleteApplication,
@@ -71,6 +72,7 @@ const TABS = [
   { id: "projects", label: "My projects", icon: FolderGit2 },
   { id: "roles", label: "My roles", icon: Briefcase },
   { id: "applications", label: "Applications", icon: Inbox },
+  { id: "security", label: "Security", icon: ShieldCheck },
 ];
 
 /** Profile checklist: key → label shown in the completeness panel. */
@@ -90,9 +92,19 @@ const COMPLETION_FIELDS = {
 const TOTAL_SLOTS = 10;
 
 export default function Dashboard() {
-  const { loading, isAuthenticated, user, profile, displayName, avatarUrl, updateProfile, profileLoading } =
-    useAuth();
+  const {
+    loading,
+    isAuthenticated,
+    user,
+    profile,
+    displayName,
+    avatarUrl,
+    updateProfile,
+    profileLoading,
+    mfa,
+  } = useAuth();
   const toast = useToast();
+  const { guard } = useMfaGuard();
   const [tab, setTab] = useState("profile");
 
   usePageMeta({
@@ -165,6 +177,7 @@ export default function Dashboard() {
       toast.warning("Add your name before saving.");
       return;
     }
+    if (!guard("save your profile")) return;
     setSaving(true);
     const { error } = await updateProfile({
       name: form.name.trim(),
@@ -312,14 +325,11 @@ export default function Dashboard() {
             icon={UserRound}
             level={1}
             title="Sign in to open your dashboard"
-            description="Your dashboard is where you build your public developer profile, publish projects and post hiring roles. Sign in with Google — it takes one tap."
+            description="Your dashboard is where you build your public developer profile, publish projects and post hiring roles. Sign in with your email, password and authenticator code."
             action={
-              <>
-                <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
-                <Link to="/login" className="btn btn-ghost">
-                  Use email instead
-                </Link>
-              </>
+              <Button to="/login?redirect=/dashboard" icon={UserRound}>
+                Sign in
+              </Button>
             }
           />
           <p className="mt-6 text-center text-xs text-muted">
@@ -415,6 +425,15 @@ export default function Dashboard() {
                   Verified
                 </Badge>
               ) : null}
+              {mfa.isEnrolled ? (
+                <Badge tone="emerald" icon={ShieldCheck} title="Two-factor authentication is on">
+                  2FA on
+                </Badge>
+              ) : (
+                <Badge tone="amber" icon={ShieldCheck} title="Add an authenticator app">
+                  2FA off
+                </Badge>
+              )}
               {profileLoading ? <Badge tone="slate">Syncing…</Badge> : null}
             </div>
           </div>
@@ -986,6 +1005,13 @@ export default function Dashboard() {
               />
             )}
           </div>
+        </section>
+      ) : null}
+
+      {/* Security tab: two-factor authentication */}
+      {tab === "security" ? (
+        <section className="mt-6">
+          <MfaPanel />
         </section>
       ) : null}
 

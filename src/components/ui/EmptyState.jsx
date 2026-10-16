@@ -10,7 +10,7 @@ const TONES = {
 
 /**
  * Friendly zero-data state. `action` is the primary CTA, `secondary` renders
- * next to it (used for "explore with sample data" and help links).
+ * next to it (help links and secondary calls to action).
  */
 export default function EmptyState({
   icon: Icon,

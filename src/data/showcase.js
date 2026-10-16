@@ -13,7 +13,7 @@ export const SHOWCASE_PROJECTS = [
     title: "Programmer's Hub",
     author_name: SITE.createdBy,
     description:
-      "The platform you're looking at: a Supabase-backed developer marketplace with Google sign-in, a hiring board and a project portfolio system.",
+      "The platform you're looking at: a Supabase-backed developer marketplace with TOTP two-factor sign-in, a hiring board, sandboxed project windows and a portfolio system.",
     tags: ["React", "Vite", "Tailwind CSS", "Supabase", "Open Source"],
     repo_url: SITE.repo,
     live_url: "",

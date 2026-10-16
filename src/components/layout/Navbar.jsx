@@ -3,7 +3,6 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { BookmarkCheck, Code2, Command, LayoutDashboard, LogOut, Menu, Search, X } from "lucide-react";
 
 import Button from "../ui/Button";
-import GoogleButton from "../auth/GoogleButton";
 import ThemeToggle from "./ThemeToggle";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
@@ -168,7 +167,9 @@ export default function Navbar() {
                 <Button to="/login" variant="ghost" size="sm">
                   Sign in
                 </Button>
-                <GoogleButton size="sm" label="Google" redirectTo={`${window.location.origin}/dashboard`} />
+                <Button to="/login?mode=signup" size="sm">
+                  Create profile
+                </Button>
               </div>
             )}
 
@@ -256,9 +257,11 @@ export default function Navbar() {
               </>
             ) : (
               <>
-                <GoogleButton redirectTo={`${window.location.origin}/dashboard`} />
-                <Button to="/login" variant="ghost">
-                  Sign in with email
+                <Button to="/login" variant="primary">
+                  Sign in
+                </Button>
+                <Button to="/login?mode=signup" variant="ghost">
+                  Create profile
                 </Button>
               </>
             )}

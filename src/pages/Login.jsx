@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
+  AlertCircle,
   ArrowLeft,
   BadgeCheck,
   Check,
@@ -8,6 +9,8 @@ import {
   EyeOff,
   FolderGit2,
   KeyRound,
+  MailCheck,
+  RefreshCw,
   Rocket,
   ShieldCheck,
   Sparkles,
@@ -71,11 +74,15 @@ export default function Login() {
   const redirectTo = params.get("redirect") || "/dashboard";
   const navigate = useNavigate();
   const toast = useToast();
-  const { isAuthenticated, signInWithPassword, signUpWithPassword, resetPassword } = useAuth();
+  const { isAuthenticated, signInWithPassword, signUpWithPassword, resendConfirmationEmail, resetPassword } =
+    useAuth();
 
   const [mode, setMode] = useState(() => (params.get("mode") === "signup" ? "signup" : "signin"));
   const [values, setValues] = useState({ fullName: "", email: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [pendingConfirmEmail, setPendingConfirmEmail] = useState("");
+  const [resending, setResending] = useState(false);
   const [busy, setBusy] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -87,31 +94,37 @@ export default function Login() {
   function update(key, value) {
     setValues((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
+    setServerError("");
   }
 
   function validate() {
     const next = {};
-    if (!/^\S+@\S+\.\S+$/.test(values.email)) next.email = "Enter a valid email address.";
-    if (mode === "signin" && values.password.length < 6)
+    const cleanEmail = values.email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) next.email = "Enter a valid email address.";
+    if (values.password.length < 6) {
       next.password = "Password must be at least 6 characters.";
-    if (mode === "signup" && values.password.length < 8) {
-      next.password = "Use at least 8 characters for a new account.";
     }
-    if (mode === "signup" && values.fullName.trim().length < 2) next.fullName = "Tell us your name.";
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+    setServerError("");
     if (!validate()) return;
     setBusy(true);
+    const cleanEmail = values.email.trim().toLowerCase();
 
     if (mode === "signin") {
-      const { error } = await signInWithPassword(values.email.trim(), values.password);
+      const { error } = await signInWithPassword(cleanEmail, values.password);
       setBusy(false);
       if (error) {
-        toast.error(friendlyError(error, "Could not sign in."));
+        if (/email not confirmed/i.test(String(error.message || ""))) {
+          setPendingConfirmEmail(cleanEmail);
+        }
+        const msg = friendlyError(error, "Could not sign in.");
+        setServerError(msg);
+        toast.error(msg);
         return;
       }
       toast.success("Welcome back!");
@@ -119,32 +132,61 @@ export default function Login() {
       return;
     }
 
-    const { data, error } = await signUpWithPassword(values.email.trim(), values.password, {
-      full_name: values.fullName.trim(),
-    });
+    const cleanName = values.fullName.trim() || (cleanEmail ? cleanEmail.split("@")[0] : "") || "Developer";
+    const { data, error, alreadyRegistered, existingAccountSignedIn, needsEmailConfirmation } =
+      await signUpWithPassword(cleanEmail, values.password, {
+        full_name: cleanName,
+      });
     setBusy(false);
+
+    if (alreadyRegistered) {
+      const msg =
+        "An account with this email already exists. Enter your password to sign in, or click 'Forgot your password?' below.";
+      setMode("signin");
+      setServerError(msg);
+      toast.info(msg);
+      return;
+    }
+
     if (error) {
-      toast.error(friendlyError(error, "Could not create your account."));
+      const msg = friendlyError(error, "Could not create your account.");
+      setServerError(msg);
+      toast.error(msg);
       return;
     }
 
     if (data?.session) {
-      toast.success("Account created. Let's build your profile!");
+      toast.success(existingAccountSignedIn ? "Welcome back!" : "Account created. Let's build your profile!");
       navigate(redirectTo, { replace: true });
-    } else {
-      toast.success("Account created — confirm your email, then sign in.");
+    } else if (needsEmailConfirmation || data?.user) {
+      setPendingConfirmEmail(cleanEmail);
       setMode("signin");
       setResetSent(false);
+      toast.success("Account created — check your email to confirm, then sign in.");
     }
   }
 
+  async function handleResendConfirmation() {
+    const targetEmail = (pendingConfirmEmail || values.email).trim().toLowerCase();
+    if (!targetEmail) return;
+    setResending(true);
+    const { error } = await resendConfirmationEmail(targetEmail);
+    setResending(false);
+    if (error) {
+      toast.error(friendlyError(error, "Could not resend the confirmation email."));
+      return;
+    }
+    toast.success(`Confirmation link sent to ${targetEmail}.`);
+  }
+
   async function handleReset() {
-    if (!/^\S+@\S+\.\S+$/.test(values.email)) {
+    const cleanEmail = values.email.trim();
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) {
       setErrors({ email: "Enter your email first, then press forgot password." });
       return;
     }
     setBusy(true);
-    const { error } = await resetPassword(values.email.trim());
+    const { error } = await resetPassword(cleanEmail);
     setBusy(false);
     if (error) {
       toast.error(friendlyError(error, "Could not send the reset email."));
@@ -202,6 +244,7 @@ export default function Login() {
                 onClick={() => {
                   setMode(tabItem.id);
                   setErrors({});
+                  setServerError("");
                   setResetSent(false);
                 }}
                 className={`flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${
@@ -216,11 +259,52 @@ export default function Login() {
             ))}
           </div>
 
+          {pendingConfirmEmail ? (
+            <div
+              role="status"
+              className="mb-5 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-xs leading-relaxed text-emerald-100"
+            >
+              <div className="flex items-start gap-2.5">
+                <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-white">Confirm your email to finish creating your account</p>
+                  <p className="mt-1 text-emerald-100/85">
+                    We sent a confirmation link to{" "}
+                    <span className="font-mono font-semibold text-white">{pendingConfirmEmail}</span>. Open
+                    the link in your inbox (or spam folder), then sign in below.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      icon={RefreshCw}
+                      loading={resending}
+                      onClick={handleResendConfirmation}
+                    >
+                      Resend confirmation email
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {serverError ? (
+            <div
+              role="alert"
+              className="mb-5 flex items-start gap-2.5 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-xs leading-relaxed text-rose-100"
+            >
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-300" aria-hidden="true" />
+              <span>{serverError}</span>
+            </div>
+          ) : null}
+
           <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
             {mode === "signup" ? (
               <Field
                 label="Full name"
-                required
+                hint="shown on your public profile"
                 value={values.fullName}
                 onChange={(event) => update("fullName", event.target.value)}
                 error={errors.fullName}
@@ -249,7 +333,7 @@ export default function Login() {
                 value={values.password}
                 onChange={(event) => update("password", event.target.value)}
                 error={errors.password}
-                placeholder={mode === "signin" ? "Your password" : "At least 8 characters"}
+                placeholder={mode === "signin" ? "Your password" : "At least 6 characters"}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"}
                 className="[&_input]:pr-24"
               />

@@ -71,12 +71,19 @@ check(
 const sitemap = readFileSync(resolve(dist, "sitemap.xml"), "utf8");
 check("sitemap uses the official namespace", sitemap.includes("http://www.sitemaps.org/schemas/sitemap/0.9"));
 check(
-  "sitemap lists the public routes",
-  ["/", "/developers", "/projects", "/hiring", "/about"].every(
-    (route) => sitemap.includes(`<loc>${route}</loc>`) || sitemap.includes(`${route}</loc>`)
+  "sitemap lists the public routes with absolute URLs",
+  ["/", "/developers", "/projects", "/hiring", "/about"].every((route) =>
+    new RegExp(`<loc>https?://[^<]+${route}</loc>`).test(sitemap)
   )
 );
 check("sitemap keeps private routes out", !/loc>[^<]*\/(shortlist|dashboard|login)</.test(sitemap));
+
+const googleVerifyPath = resolve(dist, "googleb5d74bd0d8d3f060.html");
+check(
+  "Google site verification file is present in dist/",
+  existsSync(googleVerifyPath) &&
+    readFileSync(googleVerifyPath, "utf8").trim() === "google-site-verification: googleb5d74bd0d8d3f060.html"
+);
 
 const robots = readFileSync(resolve(dist, "robots.txt"), "utf8");
 check("robots.txt allows crawling", /User-agent: \*/i.test(robots) && /Allow: \//.test(robots));

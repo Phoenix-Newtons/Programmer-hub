@@ -1,12 +1,14 @@
 import { Database, ExternalLink, RefreshCw, Terminal, WifiOff } from "lucide-react";
 import Button from "./Button";
-import { friendlyError, isNetworkError } from "../../lib/utils";
+import { SUPABASE_PROJECT_REF } from "../../lib/supabase";
+import { friendlyError, isCredentialError, isNetworkError } from "../../lib/utils";
 
 /**
  * Shown when Supabase can't serve data yet (offline, missing tables, RLS, …).
  * It keeps the UI honest and tells the developer exactly what to do next.
  */
 export default function SetupNotice({ error, what = "profiles", onRetry, compact = false }) {
+  if (!error || isCredentialError(error)) return null;
   const message = friendlyError(error);
 
   /* ---------- Offline / unreachable ---------- */
@@ -74,7 +76,11 @@ export default function SetupNotice({ error, what = "profiles", onRetry, compact
 
           <div className="mt-5 flex flex-wrap gap-3">
             <Button
-              href="https://supabase.com/dashboard"
+              href={
+                SUPABASE_PROJECT_REF
+                  ? `https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/sql/new`
+                  : "https://supabase.com/dashboard"
+              }
               size="sm"
               variant="ghost"
               icon={Terminal}

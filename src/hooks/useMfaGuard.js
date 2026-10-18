@@ -5,38 +5,35 @@ import { useToast } from "../context/ToastContext";
 /**
  * One place to ask "is this session allowed to write yet?".
  *
- * Writes go through Supabase row level security, which refuses `aal1` sessions
- * that have an authenticator enrolled. This hook mirrors that rule in the UI so
- * people get a sentence instead of a policy violation:
- *
- *   const { guard } = useMfaGuard();
- *   if (!guard("publish a project")) return;
+ * Writes go through Supabase row level security (`public.mfa_satisfied()` in
+ * `supabase/schema.sql`), which:
+ *   • requires `aal2` when the account has a verified TOTP factor enrolled
+ *   • accepts `aal1` when the account has no factor enrolled yet, so new
+ *     members are never locked out of saving their profile or projects
  */
 export default function useMfaGuard() {
   const { mfa } = useAuth();
   const toast = useToast();
 
+  const canWrite = !mfa.needsChallenge;
+
   const guard = useCallback(
     (action = "do that") => {
-      if (mfa.writesAllowed) return true;
-      toast.warning(
-        mfa.needsChallenge
-          ? "Confirm your two-factor code before you continue."
-          : `Set up two-factor authentication to ${action}.`
-      );
+      if (canWrite) return true;
+      toast.warning(`Confirm your two-factor code before you ${action}.`);
       return false;
     },
-    [mfa.needsChallenge, mfa.writesAllowed, toast]
+    [canWrite, toast]
   );
 
   return useMemo(
     () => ({
       guard,
-      canWrite: mfa.writesAllowed,
+      canWrite,
       needsSetup: mfa.needsSetup,
       needsChallenge: mfa.needsChallenge,
       isEnrolled: mfa.isEnrolled,
     }),
-    [guard, mfa.isEnrolled, mfa.needsChallenge, mfa.needsSetup, mfa.writesAllowed]
+    [canWrite, guard, mfa.isEnrolled, mfa.needsChallenge, mfa.needsSetup]
   );
 }

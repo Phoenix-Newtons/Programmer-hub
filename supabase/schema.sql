@@ -37,6 +37,27 @@ create table if not exists public.profiles (
   updated_at    timestamptz   default now()
 );
 
+-- Ensure pre-existing v1 `profiles` tables get every v2 column when re-run.
+alter table public.profiles add column if not exists email        text;
+alter table public.profiles add column if not exists name         text;
+alter table public.profiles add column if not exists title        text;
+alter table public.profiles add column if not exists location     text;
+alter table public.profiles add column if not exists bio          text;
+alter table public.profiles add column if not exists skills       text[]        default '{}';
+alter table public.profiles add column if not exists avatar_url   text;
+alter table public.profiles add column if not exists github       text;
+alter table public.profiles add column if not exists linkedin     text;
+alter table public.profiles add column if not exists website      text;
+alter table public.profiles add column if not exists whatsapp     text;
+alter table public.profiles add column if not exists hourly_rate  text;
+alter table public.profiles add column if not exists experience   text;
+alter table public.profiles add column if not exists rating       numeric(2, 1) default 0;
+alter table public.profiles add column if not exists verified     boolean       default false;
+alter table public.profiles add column if not exists featured     boolean       default false;
+alter table public.profiles add column if not exists open_to_work boolean       default true;
+alter table public.profiles add column if not exists created_at   timestamptz   default now();
+alter table public.profiles add column if not exists updated_at   timestamptz   default now();
+
 create index if not exists profiles_featured_idx   on public.profiles (featured desc, created_at desc);
 create index if not exists profiles_open_to_work_idx on public.profiles (open_to_work) where open_to_work;
 
@@ -412,6 +433,38 @@ drop trigger if exists profiles_touch_updated_at on public.profiles;
 create trigger profiles_touch_updated_at
   before update on public.profiles
   for each row execute function public.touch_updated_at();
+
+-- Automatically create a public profile row whenever a new account signs up.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  insert into public.profiles (id, email, name, open_to_work)
+  values (
+    new.id,
+    new.email,
+    coalesce(
+      nullif(trim(new.raw_user_meta_data ->> 'full_name'), ''),
+      nullif(trim(new.raw_user_meta_data ->> 'name'), ''),
+      split_part(coalesce(new.email, 'developer'), '@', 1)
+    ),
+    true
+  )
+  on conflict (id) do nothing;
+  return new;
+exception
+  when others then
+    -- Never block account creation if the profiles insert fails.
+    return new;
+end $$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
 -- Mark yourself verified / featured, e.g.:
 --   update public.profiles set verified = true, featured = true

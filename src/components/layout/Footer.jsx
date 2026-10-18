@@ -25,6 +25,7 @@ const COLUMNS = [
       { label: "Source code", href: SITE.repo },
       { label: "Report an issue", href: `${SITE.repo}/issues` },
       { label: "Schema (SQL)", href: `${SITE.repo}/blob/main/supabase/schema.sql` },
+      { label: "Sitemap", href: "/sitemap.xml" },
     ],
   },
 ];

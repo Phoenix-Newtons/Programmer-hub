@@ -226,6 +226,12 @@ export function friendlyError(error, fallback = "Something went wrong. Please tr
   if (/failed to fetch|networkerror|load failed/i.test(message)) {
     return "Can't reach Supabase right now. Check your connection and project URL.";
   }
+  if (/invalid api key|unregistered api key|no api key|jwt expired|invalid jwt/i.test(message)) {
+    return fallback;
+  }
+  if (/invalid refresh token|refresh token not found/i.test(message)) {
+    return "Your session expired. Please sign in again.";
+  }
   if (/relation .* does not exist|Could not find the table/i.test(message)) {
     return "Database table missing. Run supabase/schema.sql in your Supabase SQL editor.";
   }
@@ -236,18 +242,40 @@ export function friendlyError(error, fallback = "Something went wrong. Please tr
     return "Wrong email or password. Try again or reset your password.";
   }
   if (/email not confirmed/i.test(message)) {
-    return "Confirm your email address first — check your inbox for the confirmation link.";
+    return "Confirm your email address first — check your inbox for the confirmation link, or click Resend below.";
   }
-  if (/user already registered/i.test(message)) {
+  if (/user already registered|already been registered/i.test(message)) {
     return "That email is already registered. Try signing in instead.";
   }
   if (/password should be/i.test(message)) {
     return "Password must be at least 6 characters.";
   }
+  if (/email rate limit exceeded|over_email_send_rate_limit/i.test(message)) {
+    return "Supabase email limit reached. Wait a few minutes, or disable 'Confirm email' in Supabase → Authentication → Providers → Email.";
+  }
+  if (/error sending confirmation email|error sending recovery email/i.test(message)) {
+    return "Supabase could not send the confirmation email. Disable 'Confirm email' in Supabase → Authentication → Providers → Email.";
+  }
+  if (/signups not allowed|signup_disabled/i.test(message)) {
+    return "New account sign-ups are disabled in Supabase Authentication settings.";
+  }
   if (/rate limit|too many requests/i.test(message)) {
     return "Too many requests — wait a few seconds and try again.";
   }
   return message;
+}
+
+/** Does the error indicate a rejected Supabase API key or expired token? */
+export function isCredentialError(error) {
+  const message = String(error?.message || error?.hint || "").toLowerCase();
+  return (
+    message.includes("invalid api key") ||
+    message.includes("unregistered api key") ||
+    message.includes("no api key") ||
+    message.includes("jwt expired") ||
+    message.includes("invalid jwt") ||
+    error?.code === "PGRST301"
+  );
 }
 
 /** Is this a connectivity problem rather than a schema problem? */

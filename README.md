@@ -64,12 +64,12 @@ npm run verify       # lint + format + test + build + check:build + smoke
 3. **Authentication → Multi-Factor Auth** → make sure **TOTP** is enabled (it is on by
    default for new projects). The schema's `public.mfa_satisfied()` helper is what every
    write policy checks, so two-factor is enforced in the database, not just the UI.
-4. (Optional) Put your own credentials in `.env.local` — see [`.env.example`](.env.example):
+4. (Optional) Override credentials in `.env.local` — see [`.env.example`](.env.example):
    ```bash
-   VITE_SUPABASE_URL=https://xxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_SUPABASE_URL=https://ggfukwknodeqwnitkjvk.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdnZnVrd2tub2RlcXduaXRranZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNTQwMjMsImV4cCI6MjA5ODgzMDAyM30.oqX9-CyBRox5hgFPjkzzPuCrJvsoFqbbwBgwMuFK7Vw
    ```
-   Defaults already point at the public project that ships with this repo.
+   Defaults already point at `https://ggfukwknodeqwnitkjvk.supabase.co`.
 
 ### How two-factor authentication works
 

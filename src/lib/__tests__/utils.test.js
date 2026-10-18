@@ -7,6 +7,7 @@ import {
   formatDate,
   hostFromUrl,
   initials,
+  isCredentialError,
   isMissingTableError,
   isNetworkError,
   isValidUrl,
@@ -128,14 +129,20 @@ describe("sorting + completion", () => {
 describe("errors", () => {
   it("friendlyError translates supabase messages", () => {
     expect(friendlyError(new Error("Failed to fetch"))).toMatch(/Can't reach Supabase/);
+    expect(friendlyError({ message: "Invalid API key" }, "Fallback message")).toBe("Fallback message");
+    expect(friendlyError({ message: "Invalid Refresh Token: Refresh Token Not Found" })).toMatch(
+      /session expired/i
+    );
     expect(friendlyError({ message: "Invalid login credentials" })).toMatch(/Wrong email or password/);
     expect(friendlyError({ message: 'relation "profiles" does not exist' })).toMatch(/schema\.sql/);
     expect(friendlyError(null)).toMatch(/Something went wrong/);
   });
 
-  it("isNetworkError and isMissingTableError classify errors", () => {
+  it("isNetworkError, isCredentialError and isMissingTableError classify errors", () => {
     expect(isNetworkError(new TypeError("Failed to fetch"))).toBe(true);
     expect(isNetworkError(new Error("permission denied"))).toBe(false);
+    expect(isCredentialError({ message: "Invalid API key" })).toBe(true);
+    expect(isCredentialError({ message: "permission denied" })).toBe(false);
     expect(isMissingTableError({ code: "42P01", message: "does not exist" })).toBe(true);
     expect(isMissingTableError({ code: "23505", message: "duplicate" })).toBe(false);
   });

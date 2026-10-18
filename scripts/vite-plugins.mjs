@@ -4,8 +4,8 @@ import { resolve, relative } from "node:path";
 /**
  * Build-time plugins that finish the deployment story for `dist/`:
  *
- *  1. `seoFiles()`      — rewrites sitemap.xml / robots.txt to absolute URLs
- *                         when the deployment knows its origin.
+ *  1. `seoFiles()`      — ensures sitemap.xml / robots.txt use absolute URLs
+ *                         and current <lastmod> dates.
  *  2. `serviceWorker()` — emits sw.js with a precache list generated from the
  *                         actual hashed bundle, and rewrites the web app
  *                         manifest for sub-path hosting.
@@ -13,6 +13,7 @@ import { resolve, relative } from "node:path";
  * Everything here is production-only: the dev server is untouched.
  */
 
+const DEFAULT_SITE_URL = "https://programmer-hub-orcin.vercel.app";
 const stripTrailing = (value) => value.replace(/\/+$/, "");
 
 /** Reads every emitted file under `dist`, relative to it. */
@@ -30,9 +31,7 @@ export function seoFiles() {
     apply: "build",
     closeBundle() {
       const outDir = resolve(process.cwd(), "dist");
-      const origin = stripTrailing(process.env.VITE_SITE_URL || "");
-      if (!origin) return; // nothing absolute to write — keep the shipped files
-
+      const origin = stripTrailing(process.env.VITE_SITE_URL || DEFAULT_SITE_URL);
       const base = process.env.VITE_BASE || "/";
       const prefix = `${origin}${stripTrailing(base)}`;
       const lastmod = new Date().toISOString().slice(0, 10);
@@ -40,12 +39,14 @@ export function seoFiles() {
       const robotsPath = resolve(outDir, "robots.txt");
 
       if (existsSync(sitemapPath)) {
-        writeFileSync(
-          sitemapPath,
-          readFileSync(sitemapPath, "utf8")
-            .replace(/<loc>(\/[^<]*)<\/loc>/g, (_, path) => `<loc>${prefix}${path}</loc>`)
-            .replace(/<changefreq>/g, `<lastmod>${lastmod}</lastmod><changefreq>`)
-        );
+        let xml = readFileSync(sitemapPath, "utf8")
+          .replace(/<loc>(?:https?:\/\/[^/<]+)?(\/[^<]*)<\/loc>/g, (_, path) => `<loc>${prefix}${path}</loc>`)
+          .replace(/<lastmod>[^<]*<\/lastmod>/g, `<lastmod>${lastmod}</lastmod>`);
+
+        if (!xml.includes("<lastmod>")) {
+          xml = xml.replace(/<changefreq>/g, `<lastmod>${lastmod}</lastmod><changefreq>`);
+        }
+        writeFileSync(sitemapPath, xml);
       }
 
       if (existsSync(robotsPath)) {
@@ -60,7 +61,7 @@ export function seoFiles() {
 
 /** Files worth caching up-front: the shell + the bundle + icons. */
 const PRECACHE_PATTERNS = [
-  /\.html$/,
+  /^index\.html$/,
   /assets\/.*\.(js|css|woff2?)$/,
   /(favicon\.svg|icon-\d+\.png|apple-touch-icon\.png|manifest\.webmanifest)$/,
 ];
@@ -100,6 +101,15 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   // Same-origin only: Supabase, fonts and avatar CDNs are never intercepted.
   if (url.origin !== self.location.origin) return;
+
+  // Never intercept search-engine verification files, sitemaps or robots.txt.
+  if (
+    url.pathname.endsWith(".xml") ||
+    url.pathname.endsWith(".txt") ||
+    /\\/google[a-z0-9]+\\.html$/i.test(url.pathname)
+  ) {
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith(networkFirst(request));

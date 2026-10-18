@@ -7,4 +7,4 @@ Disallow: /dashboard
 Disallow: /login
 Disallow: /shortlist
 
-Sitemap: /sitemap.xml
+Sitemap: https://programmer-hub-orcin.vercel.app/sitemap.xml

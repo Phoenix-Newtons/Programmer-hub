@@ -13,6 +13,7 @@ describe("page registry", () => {
   it("registers every route in the app", () => {
     expect(PAGE_NAMES).toEqual([
       "Home",
+      "Hub",
       "Developers",
       "DeveloperProfile",
       "Projects",

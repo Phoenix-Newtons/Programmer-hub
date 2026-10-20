@@ -13,7 +13,7 @@ import { friendlyError, isValidUrl, normalizeUrl, truncate } from "../../lib/uti
  * Apply to a role. When the write fails (offline, RLS, two-factor) the
  * application is never lost: we fall back to a pre-filled email draft.
  */
-export default function ApplyModal({ open, onClose, job }) {
+export default function ApplyModal({ open, onClose, job, onSuccess }) {
   const { user, displayName, profile } = useAuth();
   const toast = useToast();
   const { guard } = useMfaGuard();
@@ -47,6 +47,7 @@ export default function ApplyModal({ open, onClose, job }) {
     const recipient = job?.contact_email || "";
     if (typeof window !== "undefined")
       window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+    onSuccess?.(job);
     toast.warning(reason);
     onClose?.();
   }
@@ -83,6 +84,7 @@ export default function ApplyModal({ open, onClose, job }) {
     }
 
     toast.success("Application sent. Good luck!");
+    onSuccess?.(job);
     onClose?.();
   }
 

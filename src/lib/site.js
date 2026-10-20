@@ -40,6 +40,7 @@ export const SITE = {
 };
 
 export const NAV_LINKS = [
+  { to: "/hub", label: "Hub" },
   { to: "/developers", label: "Developers" },
   { to: "/projects", label: "Projects" },
   { to: "/hiring", label: "Hiring" },

@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import OfflineBanner from "./OfflineBanner";
 import CommandPalette from "./CommandPalette";
+import { InstallAppBanner } from "./InstallApp";
 import MfaGate from "../auth/MfaGate";
 
 /**
@@ -54,6 +55,7 @@ export default function Layout() {
       </main>
 
       <Footer />
+      <InstallAppBanner />
       <CommandPalette />
       <MfaGate />
 

@@ -6,7 +6,12 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { canPrefetch, prefetchPage } from "./lib/pages";
+import { initInstallCapture } from "./lib/installApp";
 import "./index.css";
+
+// Capture Chrome's one-shot `beforeinstallprompt` before React mounts, so
+// the Install buttons/banner can replay it whenever the user is ready.
+initInstallCapture();
 
 const container = document.getElementById("root");
 

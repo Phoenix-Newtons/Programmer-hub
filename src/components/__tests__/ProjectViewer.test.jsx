@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import ProjectCard from "../cards/ProjectCard";
+import { screenshotUrl } from "../projects/ProjectViewer";
 import { renderWithProviders } from "../../test/render.jsx";
 
 /**
@@ -54,6 +55,39 @@ describe("ProjectCard → project window", () => {
 
     expect(link.getAttribute("target")).toBe("_blank");
     expect(link.getAttribute("rel")).toContain("noopener");
+    await view.unmount();
+  });
+
+  it("builds a screenshot fallback URL for frame-blocked sites", () => {
+    expect(screenshotUrl("https://bus-tracker.example.com/app")).toBe(
+      "https://s0.wp.com/mshots/v1/https%3A%2F%2Fbus-tracker.example.com%2Fapp?w=1280"
+    );
+    expect(screenshotUrl("javascript:alert(1)")).toBe("");
+    expect(screenshotUrl("")).toBe("");
+  });
+
+  it("offers device widths and a screenshot mode inside the viewer", async () => {
+    const view = await renderWithProviders(<ProjectCard project={project} />);
+    const preview = view.queryAll("button").find((button) => button.textContent.includes("Preview live"));
+    await view.click(preview);
+    await settle();
+
+    const dialog = document.querySelector('[role="dialog"]');
+    expect(dialog.textContent).toContain("Desktop");
+    expect(dialog.textContent).toContain("Tablet");
+    expect(dialog.textContent).toContain("Mobile");
+    expect(dialog.textContent).toContain("Live iframe");
+
+    const shotButton = Array.from(dialog.querySelectorAll("button")).find((button) =>
+      button.textContent.includes("Screenshot")
+    );
+    expect(shotButton).toBeTruthy();
+    shotButton.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true }));
+    await settle();
+
+    const shot = dialog.querySelector('img[alt^="Screenshot preview"]');
+    expect(shot).toBeTruthy();
+    expect(shot.getAttribute("src")).toContain("s0.wp.com/mshots");
     await view.unmount();
   });
 

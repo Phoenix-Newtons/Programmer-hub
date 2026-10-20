@@ -59,6 +59,12 @@ alter table public.profiles add column if not exists created_at   timestamptz   
 alter table public.profiles add column if not exists updated_at   timestamptz   default now();
 
 create index if not exists profiles_featured_idx   on public.profiles (featured desc, created_at desc);
+
+-- Hub upgrades: verified GitHub metrics, availability detail, spotlight flag.
+alter table public.profiles add column if not exists github_metrics    jsonb   default '[]'::jsonb;
+alter table public.profiles add column if not exists availability_note text;
+alter table public.profiles add column if not exists available_from    date;
+alter table public.profiles add column if not exists sponsored         boolean default false;
 create index if not exists profiles_open_to_work_idx on public.profiles (open_to_work) where open_to_work;
 
 -- ---------------------------------------------------------------------
@@ -82,6 +88,9 @@ create index if not exists projects_user_id_idx    on public.projects (user_id);
 create index if not exists projects_created_at_idx on public.projects (created_at desc);
 create index if not exists projects_tags_idx       on public.projects using gin (tags);
 create index if not exists projects_featured_idx   on public.projects (featured) where featured;
+
+-- Hub upgrades: server-side upvote score (the client overlays local votes).
+alter table public.projects add column if not exists upvotes integer not null default 0;
 
 -- ---------------------------------------------------------------------
 -- jobs: hiring board listings
@@ -118,6 +127,10 @@ end $$;
 create index if not exists jobs_created_at_idx on public.jobs (created_at desc);
 create index if not exists jobs_user_id_idx    on public.jobs (user_id);
 create index if not exists jobs_status_idx     on public.jobs (status);
+
+-- Hub upgrades: paid / spotlighted placements render with the animated
+-- sponsored border and sort ahead of organic listings.
+alter table public.jobs add column if not exists sponsored boolean default false;
 create index if not exists jobs_skills_idx     on public.jobs using gin (skills);
 
 -- ---------------------------------------------------------------------
@@ -469,3 +482,32 @@ create trigger on_auth_user_created
 -- Mark yourself verified / featured, e.g.:
 --   update public.profiles set verified = true, featured = true
 --   where email = 'alphaluwangula@proton.me';
+
+-- ---------------------------------------------------------------------
+-- Realtime: stream profile / project / job changes to the Hub dashboard
+-- (`useHubRealtime`). Guarded so re-running this file never errors when
+-- the tables are already in the publication.
+-- ---------------------------------------------------------------------
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'profiles'
+    ) then
+      alter publication supabase_realtime add table public.profiles;
+    end if;
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'projects'
+    ) then
+      alter publication supabase_realtime add table public.projects;
+    end if;
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'jobs'
+    ) then
+      alter publication supabase_realtime add table public.jobs;
+    end if;
+  end if;
+end $$;

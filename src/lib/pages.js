@@ -10,6 +10,7 @@ import { lazy } from "react";
  */
 const LOADERS = {
   Home: () => import("../pages/Home"),
+  Hub: () => import("../pages/Hub"),
   Developers: () => import("../pages/Developers"),
   DeveloperProfile: () => import("../pages/DeveloperProfile"),
   Projects: () => import("../pages/Projects"),
@@ -58,6 +59,7 @@ export function prefetchPage(name) {
 /** Route path → page name, so links can prefetch without knowing the registry. */
 const PATH_PAGES = {
   "/": "Home",
+  "/hub": "Hub",
   "/developers": "Developers",
   "/projects": "Projects",
   "/hiring": "Hiring",

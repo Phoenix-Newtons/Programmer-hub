@@ -8,6 +8,7 @@ import { lazyPage } from "./lib/pages";
 // Route-level code splitting: each page is fetched on demand (see lib/pages.js,
 // which also powers the hover prefetching in the navigation).
 const Home = lazyPage("Home");
+const Hub = lazyPage("Hub");
 const Developers = lazyPage("Developers");
 const DeveloperProfile = lazyPage("DeveloperProfile");
 const Projects = lazyPage("Projects");
@@ -49,6 +50,17 @@ export default function App() {
   return (
     <ErrorBoundary>
       <Routes>
+        {/* The unified dashboard ships its own top navbar + sidebar shell. */}
+        <Route
+          path="/hub"
+          element={
+            <ErrorBoundary title="The hub dashboard hit an error">
+              <Suspense fallback={<PageLoader label="Loading hub dashboard…" />}>
+                <Hub />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
         <Route element={<Layout />}>
           {ROUTES.map((route) => (
             <Route

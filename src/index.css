@@ -37,6 +37,9 @@
   --animate-rise: rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-shimmer: shimmer 2.4s linear infinite;
   --animate-pulse-ring: pulse-ring 2.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* Hub widgets: springy upvote pop + its expanding accent ring. */
+  --animate-upvote-pop: upvote-pop 0.48s cubic-bezier(0.34, 1.8, 0.64, 1) both;
+  --animate-vote-ring: vote-ring 1.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
 }
 
 @keyframes float {
@@ -84,6 +87,35 @@
   }
   to {
     background-position: 200% 0;
+  }
+}
+@keyframes upvote-pop {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-5px) scale(1.35);
+  }
+  65% {
+    transform: translateY(1px) scale(0.92);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes vote-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.22);
+    opacity: 0;
+  }
+}
+@keyframes sponsored-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 @keyframes pulse-ring {
@@ -516,6 +548,22 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Sponsored placement: a rotating conic gradient peeks out as a 1.5px
+   border. Only `transform` animates, so the loop is compositor-driven. */
+.sponsored-frame {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.sponsored-frame::before {
+  content: "";
+  position: absolute;
+  inset: -70%;
+  z-index: -1;
+  background: conic-gradient(from 0deg, #6366f1, #a855f7, #22d3ee, #818cf8, #6366f1);
+  animation: sponsored-spin 7s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

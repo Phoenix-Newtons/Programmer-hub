@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Briefcase, Send } from "lucide-react";
 
 import Modal from "../ui/Modal";
@@ -7,6 +7,8 @@ import Button from "../ui/Button";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import useMfaGuard from "../../hooks/useMfaGuard";
+import usePersistentForm from "../../hooks/usePersistentForm";
+import { DraftNotice } from "../hub/HubWidgets";
 import { createJob, updateJob } from "../../lib/api";
 import { EXPERIENCE_LEVELS, JOB_TYPES } from "../../lib/site";
 import { friendlyError, normalizeList } from "../../lib/utils";
@@ -29,15 +31,26 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
   const { user, displayName, profile } = useAuth();
   const toast = useToast();
   const { guard } = useMfaGuard();
-  const [values, setValues] = useState(EMPTY);
+  // Draft preservation: typed input is backed up to localStorage (500 ms
+  // debounce) and restored on reopen; the key is cleared only after a
+  // successful submit below. Editing uses a per-role key.
+  const form = usePersistentForm(`ph:draft:job:${job?.id ?? "new"}`, EMPTY);
+  const { values, seedValues } = form;
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const isEditing = Boolean(job?.id);
+  const restoredRef = useRef(false);
+  useEffect(() => {
+    restoredRef.current = form.restored;
+  }, [form.restored]);
 
   useEffect(() => {
     if (!open) return;
     setErrors({});
-    setValues(
+    // A recovered draft wins over programmatic seeding — never overwrite
+    // what the user typed before an accidental close / refresh.
+    if (restoredRef.current) return;
+    seedValues(
       isEditing
         ? {
             title: job.title || "",
@@ -57,10 +70,11 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
             contact_email: user?.email || "",
           }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isEditing, job, user?.email, displayName, profile]);
 
   function update(key, value) {
-    setValues((current) => ({ ...current, [key]: value }));
+    form.setValue(key, value);
     setErrors((current) => ({ ...current, [key]: undefined }));
   }
 
@@ -110,6 +124,7 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
     }
 
     toast.success(isEditing ? "Role updated." : "Role posted. Developers can apply right away.");
+    form.clearDraft(); // successful submit is the only place the backup is cleared
     onSaved?.();
     onClose?.();
   }
@@ -134,6 +149,7 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
       }
     >
       <form id="job-form" onSubmit={handleSubmit} className="grid gap-4">
+        <DraftNotice restored={form.restored} onDismiss={form.dismissRestored} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Role title"

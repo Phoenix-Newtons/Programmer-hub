@@ -24,6 +24,12 @@ const PAGES = [
     expects: ["next opportunity", "How it works", "Developers on the hub"],
   },
   {
+    route: "/hub",
+    pattern: "/hub",
+    module: "/src/pages/Hub.jsx",
+    expects: ["Find talent worth hiring", "Find Talent", "Ship Projects", "Get Hired"],
+  },
+  {
     route: "/developers",
     pattern: "/developers",
     module: "/src/pages/Developers.jsx",

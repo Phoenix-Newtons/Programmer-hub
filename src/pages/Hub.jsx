@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   ArrowRight,
@@ -30,6 +30,10 @@ import EmptyState from "../components/ui/EmptyState";
 import Modal from "../components/ui/Modal";
 import { GridSkeleton, RowSkeleton } from "../components/ui/Skeletons";
 import useCollection from "../hooks/useCollection";
+import useHubRealtime from "../hooks/useHubRealtime";
+import usePersistentForm from "../hooks/usePersistentForm";
+import { LiveActivityBanner, DraftNotice } from "../components/hub/HubWidgets";
+import { upvoteCount, useUpvotes } from "../lib/upvotes";
 import usePageMeta from "../hooks/usePageMeta";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -134,12 +138,18 @@ export default function Hub() {
   const [openOnly, setOpenOnly] = useState(false);
   const [talentSort, setTalentSort] = useState("featured");
   const [projectTag, setProjectTag] = useState("All");
+  const [projectSort, setProjectSort] = useState("upvotes");
   const [jobType, setJobType] = useState("All");
   const [remoteOnly, setRemoteOnly] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [messaging, setMessaging] = useState(null);
-  const [messageDraft, setMessageDraft] = useState("");
+  // Message drafts survive accidental closes / refreshes (500 ms debounce);
+  // the backup key is per-recipient and cleared only on a successful send.
+  const messageForm = usePersistentForm(
+    messaging ? `ph:draft:message:${messaging.id}` : "ph:draft:message:none",
+    { message: "" }
+  );
   const [applyingJob, setApplyingJob] = useState(null);
   const [previewProject, setPreviewProject] = useState(null);
   const [appliedIds, setAppliedIds] = useState(readApplied);
@@ -169,15 +179,27 @@ export default function Hub() {
     [projectsCol.data]
   );
   const jobs = useMemo(() => (jobsCol.data.length ? jobsCol.data : DEMO_JOBS), [jobsCol.data]);
+
+  /* ── Realtime ──────────────────────────────────────────────────────
+     Postgres changes on profiles/projects/jobs stream in as sidebar
+     banners + optimistic count deltas. The hook also bumps the data
+     revision, so collections refetch; each delta is retired below as
+     soon as its collection's fetched length actually changes. */
+  const realtime = useHubRealtime("hub-live");
+  const votedMap = useUpvotes();
+
+  useEffect(() => realtime.retireDelta("talent"), [profilesCol.data.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtime.retireDelta("projects"), [projectsCol.data.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => realtime.retireDelta("jobs"), [jobsCol.data.length]); // eslint-disable-line react-hooks/exhaustive-deps
   const usingDemo = !profilesCol.data.length || !projectsCol.data.length || !jobsCol.data.length;
 
   const counts = useMemo(
     () => ({
-      talent: profiles.length,
-      projects: projects.length,
-      jobs: jobs.filter((job) => job.status !== "closed").length,
+      talent: profiles.length + (realtime.deltas.talent || 0),
+      projects: projects.length + (realtime.deltas.projects || 0),
+      jobs: jobs.filter((job) => job.status !== "closed").length + (realtime.deltas.jobs || 0),
     }),
-    [profiles, projects, jobs]
+    [profiles, projects, jobs, realtime.deltas]
   );
 
   const talentResults = useMemo(() => {
@@ -196,6 +218,7 @@ export default function Hub() {
       if (talentSort === "newest")
         return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
       return (
+        Number(Boolean(b.sponsored || b.premium)) - Number(Boolean(a.sponsored || a.premium)) ||
         Number(Boolean(b.featured)) - Number(Boolean(a.featured)) ||
         (Number(b.rating) || 0) - (Number(a.rating) || 0)
       );
@@ -203,37 +226,42 @@ export default function Hub() {
     return pool;
   }, [profiles, skill, openOnly, query, talentSort]);
 
-  const projectResults = useMemo(
-    () =>
-      projects.filter((project) => {
-        const tags = normalizeList(project.tags || project.skills);
-        const matchesTag =
-          projectTag === "All" || tags.some((tag) => tag.toLowerCase().includes(projectTag.toLowerCase()));
-        const matchesSearch =
-          !query.trim() ||
-          matchesQuery(query, project.title, project.description, project.author_name, tags.join(" "));
-        return matchesTag && matchesSearch;
-      }),
-    [projects, projectTag, query]
-  );
+  const projectResults = useMemo(() => {
+    const filtered = projects.filter((project) => {
+      const tags = normalizeList(project.tags || project.skills);
+      const matchesTag =
+        projectTag === "All" || tags.some((tag) => tag.toLowerCase().includes(projectTag.toLowerCase()));
+      const matchesSearch =
+        !query.trim() ||
+        matchesQuery(query, project.title, project.description, project.author_name, tags.join(" "));
+      return matchesTag && matchesSearch;
+    });
+    return [...filtered].sort((a, b) =>
+      projectSort === "newest"
+        ? new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+        : upvoteCount(b, votedMap) - upvoteCount(a, votedMap)
+    );
+  }, [projects, projectTag, query, projectSort, votedMap]);
 
   const jobResults = useMemo(
     () =>
-      jobs.filter((job) => {
-        const matchesType = jobType === "All" || job.type === jobType;
-        const matchesRemote = !remoteOnly || /remote/i.test(job.location || "");
-        const matchesSearch =
-          !query.trim() ||
-          matchesQuery(
-            query,
-            job.title,
-            job.company,
-            job.location,
-            job.type,
-            normalizeList(job.skills).join(" ")
-          );
-        return matchesType && matchesRemote && matchesSearch && job.status !== "closed";
-      }),
+      [...jobs]
+        .sort((a, b) => Number(Boolean(b.sponsored || b.premium)) - Number(Boolean(a.sponsored || a.premium)))
+        .filter((job) => {
+          const matchesType = jobType === "All" || job.type === jobType;
+          const matchesRemote = !remoteOnly || /remote/i.test(job.location || "");
+          const matchesSearch =
+            !query.trim() ||
+            matchesQuery(
+              query,
+              job.title,
+              job.company,
+              job.location,
+              job.type,
+              normalizeList(job.skills).join(" ")
+            );
+          return matchesType && matchesRemote && matchesSearch && job.status !== "closed";
+        }),
     [jobs, jobType, remoteOnly, query]
   );
 
@@ -258,14 +286,20 @@ export default function Hub() {
 
   function sendMessage(event) {
     event.preventDefault();
-    if (!messageDraft.trim()) return;
+    if (!messageForm.values.message.trim()) return;
     toast.success(`Message sent to ${messaging?.name || "developer"} — they'll reply by email.`);
+    messageForm.clearDraft(); // cleared only now that the send succeeded
     setMessaging(null);
-    setMessageDraft("");
   }
 
   const sidebar = (
     <nav aria-label="Hub" className="flex h-full flex-col gap-1 p-4">
+      <LiveActivityBanner
+        activity={realtime.activity}
+        status={realtime.status}
+        onDismiss={realtime.dismiss}
+        onNavigate={switchView}
+      />
       <p className="px-2 pb-2 text-[0.68rem] font-bold uppercase tracking-[0.14em] text-muted">Workspace</p>
       {VIEWS.map((item) => {
         const Icon = item.icon;
@@ -598,10 +632,7 @@ export default function Hub() {
                       key={profile.id}
                       profile={profile}
                       onView={setSelectedProfile}
-                      onMessage={(person) => {
-                        setMessaging(person);
-                        setMessageDraft("");
-                      }}
+                      onMessage={setMessaging}
                     />
                   ))}
                 </div>
@@ -646,6 +677,18 @@ export default function Hub() {
                     ariaLabel="Filter projects by category"
                   />
                 </div>
+                <label className="flex items-center gap-2 text-xs font-semibold text-muted">
+                  Sort
+                  <select
+                    value={projectSort}
+                    onChange={(event) => setProjectSort(event.target.value)}
+                    className="field w-auto rounded-full py-1.5 pl-3 pr-8 text-xs"
+                    aria-label="Sort projects"
+                  >
+                    <option value="upvotes">Most upvoted</option>
+                    <option value="newest">Newest first</option>
+                  </select>
+                </label>
                 <p className="text-xs font-semibold text-muted" role="status">
                   {projectResults.length} project{projectResults.length === 1 ? "" : "s"}
                 </p>
@@ -838,20 +881,23 @@ export default function Hub() {
         icon={MessageCircle}
         size="sm"
       >
-        <form onSubmit={sendMessage}>
-          <label className="label" htmlFor="hub-message">
-            Your message
-          </label>
-          <textarea
-            id="hub-message"
-            className="field"
-            rows={5}
-            value={messageDraft}
-            onChange={(event) => setMessageDraft(event.target.value)}
-            placeholder={`Hi ${messaging?.name?.split(" ")[0] || "there"} — I saw your work on the hub and wanted to talk about…`}
-            data-autofocus
-          />
-          <div className="mt-4 flex justify-end gap-2">
+        <form onSubmit={sendMessage} className="grid gap-3">
+          <DraftNotice restored={messageForm.restored} onDismiss={messageForm.dismissRestored} />
+          <div>
+            <label className="label" htmlFor="hub-message">
+              Your message
+            </label>
+            <textarea
+              id="hub-message"
+              className="field"
+              rows={5}
+              value={messageForm.values.message}
+              onChange={(event) => messageForm.setValue("message", event.target.value)}
+              placeholder={`Hi ${messaging?.name?.split(" ")[0] || "there"} — I saw your work on the hub and wanted to talk about…`}
+              data-autofocus
+            />
+          </div>
+          <div className="mt-1 flex justify-end gap-2">
             <button
               type="button"
               className="btn btn-ghost px-4 py-2.5 text-sm"
@@ -862,7 +908,7 @@ export default function Hub() {
             <button
               type="submit"
               className="btn btn-primary px-4 py-2.5 text-sm"
-              disabled={!messageDraft.trim()}
+              disabled={!messageForm.values.message.trim()}
             >
               <Send className="h-4 w-4" aria-hidden="true" />
               Send message

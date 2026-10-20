@@ -12,6 +12,13 @@ const PROFILES = [
     rating: 4.9,
     open_to_work: true,
     verified: true,
+    sponsored: true,
+    github: "https://github.com/ada",
+    github_metrics: [
+      { language: "JavaScript", percent: 60 },
+      { language: "Go", percent: 40 },
+    ],
+    availability_note: "Available for contract starting Nov 1",
     created_at: "2025-01-10T10:00:00Z",
   },
   {
@@ -37,6 +44,7 @@ const PROJECTS = [
     tags: ["React", "Open Source"],
     repo_url: "https://github.com/example/paybridge",
     live_url: "https://example.com",
+    upvotes: 342,
     contributors: 24,
     contributor_names: ["Ada Nakato", "Brian Okello"],
     stars: 1284,
@@ -56,6 +64,7 @@ const JOBS = [
     description: "Own the merchant dashboard end-to-end.",
     skills: ["React", "TypeScript"],
     status: "open",
+    sponsored: true,
     applicants: 34,
     created_at: "2025-10-14T10:00:00Z",
   },
@@ -105,6 +114,12 @@ describe("Hub dashboard", () => {
     expect(text).toContain("Next.js");
     expect(text).toContain("View Profile");
     expect(text).toContain("Message");
+    // Verified proof-of-skill layer + availability tooltip + sponsored frame
+    expect(text).toContain("Verified GitHub metrics");
+    expect(text).toContain("JavaScript");
+    expect(text).toContain("60%");
+    expect(text).toContain("Available for contract starting Nov 1");
+    expect(text).toContain("Featured");
     await view.unmount();
   });
 
@@ -126,6 +141,7 @@ describe("Hub dashboard", () => {
     expect(text).toContain("24 contributors");
     expect(text).toContain("Live Demo");
     expect(text).toContain("GitHub");
+    expect(text).toContain("342");
     await view.unmount();
   });
 
@@ -137,11 +153,36 @@ describe("Hub dashboard", () => {
     expect(text).toContain("PayBridge");
     expect(text).toContain("$60k – $85k / yr");
     expect(text).toContain("Apply Now");
+    expect(text).toContain("Featured"); // sponsored monogram badge
 
     const remoteToggle = view.queryAll("button").find((button) => button.textContent.includes("Remote only"));
     await view.click(remoteToggle);
     expect(view.text()).toContain("Senior Full-Stack Engineer");
     expect(view.text()).not.toContain("Flutter Developer");
+    await view.unmount();
+  });
+
+  it("toggles an upvote with an active state and a live count", async () => {
+    const view = await renderWithProviders(<Hub />, { route: "/hub?view=projects" });
+    const upvote = view
+      .queryAll("button")
+      .find((button) => (button.getAttribute("aria-label") || "").startsWith("Upvote PayBridge"));
+    expect(upvote).toBeTruthy();
+    expect(upvote.textContent).toContain("342");
+
+    await view.click(upvote);
+    const voted = view
+      .queryAll("button")
+      .find((button) => (button.getAttribute("aria-label") || "").includes("Remove your upvote"));
+    expect(voted).toBeTruthy();
+    expect(voted.getAttribute("aria-pressed")).toBe("true");
+    expect(voted.textContent).toContain("343");
+    await view.unmount();
+  });
+
+  it("shows the realtime live indicator in the sidebar", async () => {
+    const view = await renderWithProviders(<Hub />, { route: "/hub" });
+    expect(view.text()).toMatch(/Live — hub activity|Realtime offline/);
     await view.unmount();
   });
 

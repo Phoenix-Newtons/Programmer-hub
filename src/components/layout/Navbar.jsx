@@ -4,6 +4,7 @@ import { BookmarkCheck, Code2, Command, LayoutDashboard, LogOut, Menu, Search, X
 
 import Button from "../ui/Button";
 import ThemeToggle from "./ThemeToggle";
+import { InstallAppButton } from "./InstallApp";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { NAV_LINKS } from "../../lib/site";
@@ -135,6 +136,8 @@ export default function Navbar() {
 
             <ThemeToggle compact className="hidden sm:block" />
 
+            <InstallAppButton className="hidden md:inline-flex" />
+
             {isAuthenticated ? (
               <div className="hidden items-center gap-2 lg:flex">
                 <Link
@@ -244,6 +247,8 @@ export default function Navbar() {
             <ThemeToggle compact />
             <span className="text-sm font-semibold text-muted">Appearance</span>
           </div>
+
+          <InstallAppButton className="mt-3 w-full" label="Install app — works on all devices" />
 
           <div className="grid gap-2 pt-3">
             {isAuthenticated ? (

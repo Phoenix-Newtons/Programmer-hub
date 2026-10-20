@@ -2,9 +2,15 @@
   "name": "Programmer's Hub — Find talent. Ship projects. Get hired.",
   "short_name": "Programmer's Hub",
   "description": "A developer marketplace: showcase your stack, publish real projects and get contacted by clients in one click.",
-  "start_url": "/",
+  "id": "/",
+  "start_url": "/hub?utm_source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "dir": "ltr",
+  "lang": "en",
+  "categories": ["business", "productivity", "social"],
   "background_color": "#070b18",
   "theme_color": "#070b18",
   "icons": [
@@ -18,16 +24,32 @@
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Programmer's Hub dashboard"
     }
   ],
   "shortcuts": [
+    { "name": "Hub dashboard", "url": "/hub" },
     { "name": "Developers", "url": "/developers" },
     { "name": "Projects", "url": "/projects" },
     { "name": "Hiring board", "url": "/hiring" }

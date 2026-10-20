@@ -25,6 +25,7 @@ import { TalentCard, ProjectFeedCard, JobRow } from "../components/hub/HubCards"
 import ApplyModal from "../components/hiring/ApplyModal";
 import ProjectViewer from "../components/projects/ProjectViewer";
 import ThemeToggle from "../components/layout/ThemeToggle";
+import { InstallAppBanner, InstallAppButton } from "../components/layout/InstallApp";
 import Avatar from "../components/ui/Avatar";
 import EmptyState from "../components/ui/EmptyState";
 import Modal from "../components/ui/Modal";
@@ -436,6 +437,7 @@ export default function Hub() {
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-cyan-400" aria-hidden="true" />
             </button>
             <ThemeToggle />
+            <InstallAppButton className="hidden sm:inline-flex" />
             <Link to={user ? "/dashboard" : "/login"} aria-label={user ? "Open your dashboard" : "Sign in"}>
               <Avatar name={user?.user_metadata?.full_name || user?.email || "Guest"} size="sm" />
             </Link>
@@ -924,6 +926,7 @@ export default function Hub() {
         onSuccess={() => markApplied(applyingJob)}
         onClose={() => setApplyingJob(null)}
       />
+      <InstallAppBanner />
       <ProjectViewer
         project={previewProject}
         open={Boolean(previewProject)}

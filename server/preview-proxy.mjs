@@ -52,6 +52,7 @@ import {
   parseTargetUrl,
   rewriteHtml,
 } from "./proxy-core.mjs";
+import { createScreenshotService } from "./screenshot-service.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -75,6 +76,11 @@ function configFromEnv(env = process.env) {
     frameAncestors: env.PROXY_FRAME_ANCESTORS
       ? env.PROXY_FRAME_ANCESTORS.split(/\s+/).filter(Boolean)
       : DEFAULT_FRAME_ANCESTORS,
+    // /api/preview headless-Chrome snapshots
+    screenshotMaxConcurrency: Number(env.PREVIEW_MAX_CONCURRENCY) || 3,
+    screenshotTimeoutMs: Number(env.PREVIEW_TIMEOUT_MS) || 30_000,
+    screenshotSettleMs: Number(env.PREVIEW_SETTLE_MS) || 1_500,
+    perRequestBrowser: env.PREVIEW_BROWSER_PER_REQUEST === "true",
   };
 }
 
@@ -171,16 +177,55 @@ async function fetchTarget(initialUrl, config, incomingHeaders, fetchFn) {
  * Builds the Express app. `fetchFn` / `config` are injectable so tests can
  * run the whole proxy against a stub upstream without a network.
  */
-export function createProxyApp({ fetchFn = fetch, config = configFromEnv(), serveDemo = true } = {}) {
+export function createProxyApp({
+  fetchFn = fetch,
+  config = configFromEnv(),
+  serveDemo = true,
+  screenshotService = null,
+} = {}) {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", false);
+
+  const screenshots =
+    screenshotService ||
+    createScreenshotService({
+      config: {
+        maxConcurrency: config.screenshotMaxConcurrency,
+        navigationTimeoutMs: config.screenshotTimeoutMs,
+        settleMs: config.screenshotSettleMs,
+        perRequestBrowser: config.perRequestBrowser,
+      },
+    });
+  app.locals.closeScreenshotBrowser = screenshots.closeBrowser;
 
   app.get("/healthz", (req, res) => res.json({ ok: true, service: "programmers-hub-preview-proxy" }));
 
   if (serveDemo) {
     app.use(express.static(path.join(__dirname, "public"), { index: "index.html", maxAge: "1h" }));
   }
+
+  /**
+   * GET /api/preview?url= — headless-Chrome snapshot + OG metadata as JSON.
+   * Bot-challenge interstitials return 409 CHALLENGE_DETECTED with a
+   * fallback image URL (detected, never evaded). Stricter rate limit:
+   * every call launches real page renders.
+   */
+  app.get("/api/preview", rateLimit({ windowMs: 60_000, max: 20 }), async (req, res) => {
+    const parsed = parseTargetUrl(req.query.url);
+    if (!parsed.ok) return res.status(400).json({ ok: false, error: parsed.error });
+    try {
+      const result = await screenshots.capturePreview(parsed.url, { gateConfig: config });
+      return res.status(result.ok ? 200 : 409).json(result);
+    } catch (error) {
+      return res.status(error.status || 502).json({
+        ok: false,
+        code: error.code || "PREVIEW_FAILED",
+        error: error.message || "Preview failed.",
+        url: parsed.url.href,
+      });
+    }
+  });
 
   app.get("/proxy", rateLimit(), async (req, res) => {
     const parsed = parseTargetUrl(req.query.url);
@@ -238,7 +283,7 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv
 if (isMain) {
   const port = Number(process.env.PORT) || 8787;
   const app = createProxyApp();
-  app.listen(port, "0.0.0.0", () => {
+  const server = app.listen(port, "0.0.0.0", () => {
     console.info(`Programmer's Hub preview proxy → http://localhost:${port}`);
     console.info(`Demo UI:  http://localhost:${port}/`);
     console.info(`Endpoint: http://localhost:${port}/proxy?url=https://example.com`);
@@ -252,6 +297,15 @@ if (isMain) {
       console.warn("⚠ server/public/index.html not found — demo UI disabled.")
     );
   });
+
+  // Never leak the pooled Chrome on shutdown.
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.on(signal, async () => {
+      await app.locals.closeScreenshotBrowser?.().catch(() => {});
+      server.close(() => process.exit(0));
+      setTimeout(() => process.exit(0), 3000).unref();
+    });
+  }
 }
 
 export default createProxyApp;

@@ -28,7 +28,18 @@
           required
         />
         <button id="load-button" type="submit">Load Live Preview</button>
+        <button id="snapshot-button" type="button" class="secondary">Generate Snapshot</button>
       </form>
+
+      <section id="snapshot-panel" class="snapshot" hidden aria-label="Snapshot preview">
+        <div class="snapshot-head">
+          <h2 id="snapshot-title">Snapshot</h2>
+          <a id="snapshot-open" href="#" target="_blank" rel="noopener noreferrer" hidden>Open site ↗</a>
+        </div>
+        <p id="snapshot-description" class="sub"></p>
+        <p id="snapshot-note" class="status"></p>
+        <img id="snapshot-img" alt="Visual snapshot of the requested website" hidden />
+      </section>
 
       <p id="status" class="status" role="status" aria-live="polite">Enter a URL to preview it here.</p>
       <p id="error" class="error" role="alert" hidden></p>

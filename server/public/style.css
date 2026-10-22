@@ -170,3 +170,45 @@ footer {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.bar button.secondary {
+  background: rgba(129, 140, 248, 0.16);
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  color: var(--text);
+}
+
+.snapshot {
+  margin-top: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  background: var(--panel);
+  padding: 1.25rem;
+}
+
+.snapshot-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.snapshot h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+
+.snapshot a {
+  color: #67e8f9;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.snapshot img {
+  display: block;
+  width: 100%;
+  margin-top: 0.75rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--line);
+  background: #fff;
+}

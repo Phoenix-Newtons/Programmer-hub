@@ -40,6 +40,47 @@ redirects, re-running the full gate on every hop → strip the framing
 headers (+ `Clear-Site-Data`, `Set-Cookie`) → rewrite the HTML → respond
 with the proxy's own framing policy.
 
+## Headless-Chrome snapshots: `GET /api/preview?url=`
+
+```bash
+curl "http://localhost:8787/api/preview?url=https://example.com"
+```
+
+Renders the page in real Chromium (pooled browser, fresh page per
+request, page closed in `finally`, concurrency-capped) and returns JSON:
+
+```json
+{
+  "ok": true,
+  "url": "…",
+  "title": "…",
+  "metadata": { "description": "…", "image": "…" },
+  "screenshotBase64": "<png, base64>",
+  "mimeType": "image/png"
+}
+```
+
+Needs a browser binary: `npm install puppeteer` (manages its own
+Chromium) **or** set `PUPPETEER_EXECUTABLE_PATH` to a system Chrome
+(`puppeteer-core` is already a dependency). Without one the endpoint
+answers `503 BROWSER_UNAVAILABLE` with setup instructions instead of a
+misleading 502.
+
+**Cloudflare-protected targets:** the service detects challenge
+interstitials ("Just a moment…") and returns
+`409 { "code": "CHALLENGE_DETECTED", "screenshotUrl": "<fallback>" }` —
+it does not spoof fingerprints or evade bot protection. If the site is
+**yours**, the supported routes are: a Cloudflare WAF/Bot allowlist rule
+for the preview service's egress IP/ASN, previewing the origin or
+staging URL (e.g. the `*.vercel.app` deployment URL), or the provider's
+official API. A plain server fetch getting Cloudflare's 502/503
+challenge page is Cloudflare refusing the client, not a bug in your
+fetch — a different HTTP library will not change that.
+
+Tuning: `PREVIEW_MAX_CONCURRENCY` (3), `PREVIEW_TIMEOUT_MS` (30000),
+`PREVIEW_SETTLE_MS` (1500), `PREVIEW_BROWSER_PER_REQUEST=true` to launch
+a fresh browser per capture.
+
 ## Wire it into the hub (optional)
 
 ```bash

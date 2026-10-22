@@ -30,6 +30,19 @@ const SLOW_LOAD_MS = 7000;
  * page still fires `load` — so instead of staring at a blank white box the
  * viewer can always fall back to (or auto-switch to) this image.
  */
+/**
+ * Optional reverse-proxy preview (server/preview-proxy.mjs). When
+ * VITE_PREVIEW_PROXY_URL points at a deployed proxy (on its OWN origin),
+ * the iframe loads through it so X-Frame-Options/CSP framing blocks are
+ * stripped server-side. Unset → the iframe loads the site directly and
+ * the screenshot fallback below covers blocked sites.
+ */
+export function proxiedPreviewUrl(url) {
+  const proxyBase = String(import.meta.env.VITE_PREVIEW_PROXY_URL || "").replace(/\/$/, "");
+  if (!proxyBase || !url) return url;
+  return `${proxyBase}/proxy?url=${encodeURIComponent(url)}`;
+}
+
 export function screenshotUrl(url, width = 1280) {
   if (!url) return "";
   try {
@@ -280,7 +293,7 @@ export default function ProjectViewer({ project, open, onClose }) {
                 >
                   <iframe
                     key={nonce}
-                    src={url}
+                    src={proxiedPreviewUrl(url)}
                     title={`${title} — live project`}
                     className="h-full w-full border-0 bg-white"
                     sandbox={sandbox}

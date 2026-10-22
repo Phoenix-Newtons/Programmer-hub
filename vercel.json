@@ -2,21 +2,42 @@
   "headers": [
     {
       "source": "/sitemap.xml",
-      "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/robots.txt",
-      "headers": [{ "key": "Content-Type", "value": "text/plain; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/plain; charset=utf-8"
+        }
+      ]
     },
     {
       "source": "/googleb5d74bd0d8d3f060.html",
-      "headers": [{ "key": "Content-Type", "value": "text/html; charset=utf-8" }]
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/html; charset=utf-8"
+        }
+      ]
     }
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|sitemap\\.xml$|robots\\.txt$|manifest\\.webmanifest$|sw\\.js$|favicon\\.svg$|icon-.*\\.png$|apple-touch-icon\\.png$|og-image\\.png$|google[a-z0-9]+\\.html$).*)",
+      "source": "/((?!api/|assets/|sitemap\\.xml$|robots\\.txt$|manifest\\.webmanifest$|sw\\.js$|favicon\\.svg$|icon-.*\\.png$|apple-touch-icon\\.png$|og-image\\.png$|google[a-z0-9]+\\.html$).*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "functions": {
+    "api/preview.mjs": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }

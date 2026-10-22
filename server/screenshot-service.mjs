@@ -16,14 +16,77 @@
  *    (CHALLENGE_DETECTED + fallback image). They are not evaded.
  *
  * Browser resolution order:
- *  1. `puppeteer` (full package, if the operator installed it),
- *  2. `puppeteer-core` + PUPPETEER_EXECUTABLE_PATH,
- *  3. `puppeteer-core` + common system Chrome/Chromium paths.
+ *  1. Serverless (Vercel/Lambda/Netlify, or PREVIEW_BROWSER_MODE=serverless):
+ *     `@sparticuz/chromium-min` downloads the version-matched Chromium pack
+ *     tarball at cold start and extracts it to /tmp — no system Chrome and
+ *     no 150 MB `puppeteer` bundle needed. The browser is closed after
+ *     every capture (frozen/thawed functions must not pool browsers).
+ *  2. `puppeteer-core` + PUPPETEER_EXECUTABLE_PATH / system Chrome (local).
+ *  3. Full `puppeteer` if the operator installed it.
  */
 
 import { existsSync } from "node:fs";
+import chromium from "@sparticuz/chromium-min";
+import puppeteer from "puppeteer-core";
 import { isChallengePage, extractMetadata, buildPreviewResult } from "./preview-core.mjs";
 import { assertSafeTarget } from "./proxy-core.mjs";
+
+/** Version-matched graphics/Chromium pack for @sparticuz/chromium-min@131. */
+export const DEFAULT_CHROMIUM_PACK_URL =
+  "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+
+/** True on Vercel / AWS Lambda / Netlify-style function runtimes. */
+export function isServerlessEnvironment(env = process.env) {
+  return Boolean(
+    env.VERCEL || env.AWS_LAMBDA_FUNCTION_NAME || env.LAMBDA_TASK_ROOT || env.NETLIFY || env.AWS_EXECUTION_ENV
+  );
+}
+
+/**
+ * Launch options for the serverless Chromium build. Pure given the pack
+ * path so it is unit-testable without downloading anything.
+ */
+export function buildServerlessLaunchOptions(executablePath, chromiumLike = chromium) {
+  return {
+    args: [
+      ...new Set([
+        ...(chromiumLike.args || []),
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--hide-scrollbars",
+      ]),
+    ],
+    defaultViewport: { width: 1280, height: 720, deviceScaleFactor: 1 },
+    executablePath,
+    headless: chromiumLike.headless ?? true,
+  };
+}
+
+let packPathPromise = null;
+
+/**
+ * Downloads (once per warm instance) and extracts the remote Chromium
+ * pack, returning the binary path. Failures are not cached.
+ */
+export function resolveServerlessExecutablePath(packUrl = DEFAULT_CHROMIUM_PACK_URL) {
+  if (!packPathPromise) {
+    try {
+      chromium.setGraphicsMode = false; // screenshots don't need WebGL; saves cold-start time
+    } catch {
+      /* older builds expose a readonly flag */
+    }
+    packPathPromise = Promise.resolve(chromium.executablePath(packUrl)).catch((error) => {
+      packPathPromise = null;
+      const wrapped = new Error(
+        `Could not download/extract the serverless Chromium pack from ${packUrl}: ${error.message}`
+      );
+      wrapped.status = 503;
+      wrapped.code = "BROWSER_UNAVAILABLE";
+      throw wrapped;
+    });
+  }
+  return packPathPromise;
+}
 
 const SYSTEM_BROWSERS = [
   process.env.PUPPETEER_EXECUTABLE_PATH,
@@ -46,32 +109,62 @@ const LAUNCH_ARGS = [
   "--window-size=1280,720",
 ];
 
-async function loadBrowserFactory() {
-  // Full puppeteer first: it manages its own Chromium download. Loaded via
-  // a variable specifier so bundlers/test runners don't try to resolve the
-  // optional package at build time.
+async function loadBrowserFactory(config = {}) {
+  const mode = config.browserMode || process.env.PREVIEW_BROWSER_MODE || "auto";
+  const serverless = mode === "serverless" || (mode === "auto" && isServerlessEnvironment());
+
+  if (serverless) {
+    const executablePath = await resolveServerlessExecutablePath(
+      config.chromiumPackUrl || process.env.CHROMIUM_PACK_URL || DEFAULT_CHROMIUM_PACK_URL
+    );
+    return {
+      serverless: true,
+      launch: (options) => {
+        const base = buildServerlessLaunchOptions(executablePath);
+        // chromium.args + serverless flags win over the generic local args.
+        return puppeteer.launch({
+          ...base,
+          ...options,
+          args: base.args,
+          defaultViewport: base.defaultViewport,
+        });
+      },
+    };
+  }
+
+  const executablePath = SYSTEM_BROWSERS.find((candidate) => existsSync(candidate));
+  if (executablePath) {
+    return {
+      serverless: false,
+      launch: (options) => puppeteer.launch({ ...options, executablePath }),
+    };
+  }
+
+  // Full puppeteer (operator-installed) as the last local fallback. Loaded
+  // via a variable specifier so bundlers/test runners don't try to
+  // resolve the optional package at build time.
   try {
     const fullSpec = "puppeteer";
     const full = await import(/* @vite-ignore */ fullSpec);
-    return { launch: (options) => (full.default || full).launch(options), needsPath: false };
+    return { serverless: false, launch: (options) => (full.default || full).launch(options) };
   } catch {
-    /* fall through to puppeteer-core */
+    /* not installed */
   }
-  const core = await import("puppeteer-core");
-  const executablePath = SYSTEM_BROWSERS.find((candidate) => existsSync(candidate));
-  if (!executablePath) {
-    const error = new Error(
-      "No Chrome/Chromium found for snapshots. Install it with `npm install puppeteer` " +
-        "(downloads Chromium) or set PUPPETEER_EXECUTABLE_PATH to a system Chrome."
-    );
-    error.status = 503;
-    error.code = "BROWSER_UNAVAILABLE";
-    throw error;
-  }
-  return {
-    launch: (options) => (core.default || core).launch({ ...options, executablePath }),
-    needsPath: true,
-  };
+
+  const error = new Error(
+    "No Chrome/Chromium found for snapshots. On serverless this is automatic " +
+      "(@sparticuz/chromium-min downloads its pack at cold start); locally set " +
+      "PUPPETEER_EXECUTABLE_PATH, install `puppeteer`, or set PREVIEW_BROWSER_MODE=serverless."
+  );
+  error.status = 503;
+  error.code = "BROWSER_UNAVAILABLE";
+  throw error;
+}
+
+/** Desktop UA aligned to the actual Chromium major version being run. */
+export function desktopUserAgent(browserVersion = "") {
+  const major = String(browserVersion).match(/(\d+)\./)?.[1] || "131";
+  return `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${major}.0.0.0 Safari/537.36`;
 }
 
 /** Minimal counting semaphore with a bounded wait queue. */
@@ -111,14 +204,18 @@ export function createScreenshotService({
   const settleMs = Number(config.settleMs) || 1_500;
   const perRequestBrowser = Boolean(config.perRequestBrowser);
   const acquire = createSemaphore(maxConcurrency);
+  let serverlessMode = false;
 
   let browserPromise = null;
 
   async function getBrowser() {
     if (launchBrowser) return launchBrowser();
     if (!browserPromise) {
-      browserPromise = loadBrowserFactory()
-        .then((factory) => factory.launch({ headless: true, args: LAUNCH_ARGS }))
+      browserPromise = loadBrowserFactory(config)
+        .then((factory) => {
+          serverlessMode = Boolean(factory.serverless);
+          return factory.launch({ headless: true, args: LAUNCH_ARGS });
+        })
         .catch((error) => {
           browserPromise = null; // never cache a failed launch
           throw error;
@@ -164,7 +261,14 @@ export function createScreenshotService({
       browser = await getBrowser();
       page = await browser.newPage();
       await page.setViewport({ width: 1280, height: 720, deviceScaleFactor: 1 });
-      // Pin language; UA/UA-CH come from the real Chromium itself.
+      // Desktop UA aligned to the running Chromium's real version, plus a
+      // pinned language. (Coherent client hints come from the browser
+      // itself; this is a normal browser configuration, not a guarantee
+      // against any site's bot policy.)
+      if (page.setUserAgent) {
+        const version = browser.version ? await browser.version().catch(() => "") : "";
+        await page.setUserAgent(desktopUserAgent(version)).catch(() => {});
+      }
       await page.setExtraHTTPHeaders({ "accept-language": "en-US,en;q=0.9" });
 
       const response = await page.goto(targetUrl.href, {
@@ -226,7 +330,12 @@ export function createScreenshotService({
       // The anti-zombie guarantee: the page always closes; in per-request
       // mode the browser does too.
       await page?.close().catch(() => {});
-      if (perRequestBrowser || launchBrowser) await browser?.close().catch(() => {});
+      // Serverless always closes the browser: a frozen function instance
+      // must never hold a ghost Chrome between invocations.
+      if (perRequestBrowser || launchBrowser || serverlessMode) {
+        await browser?.close().catch(() => {});
+        if (serverlessMode) browserPromise = null;
+      }
       release();
     }
   }

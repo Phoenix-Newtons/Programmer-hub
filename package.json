@@ -23,6 +23,7 @@
     "proxy:test": "node --check server/preview-proxy.mjs && node --check server/proxy-core.mjs"
   },
   "dependencies": {
+    "@sparticuz/chromium-min": "^131.0.1",
     "@supabase/supabase-js": "^2.112.4",
     "express": "^5.3.0",
     "lucide-react": "^1.37.0",

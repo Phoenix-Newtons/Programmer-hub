@@ -5,7 +5,12 @@ import {
   fallbackScreenshotUrl,
   isChallengePage,
 } from "../../../server/preview-core.mjs";
-import { createScreenshotService } from "../../../server/screenshot-service.mjs";
+import {
+  buildServerlessLaunchOptions,
+  createScreenshotService,
+  desktopUserAgent,
+  isServerlessEnvironment,
+} from "../../../server/screenshot-service.mjs";
 import { createProxyApp } from "../../../server/preview-proxy.mjs";
 
 describe("preview core", () => {
@@ -105,6 +110,32 @@ describe("screenshot service lifecycle", () => {
   });
 });
 
+describe("serverless chromium resolution", () => {
+  it("detects serverless runtimes from the environment", () => {
+    expect(isServerlessEnvironment({ VERCEL: "1" })).toBe(true);
+    expect(isServerlessEnvironment({ AWS_LAMBDA_FUNCTION_NAME: "fn" })).toBe(true);
+    expect(isServerlessEnvironment({})).toBe(false);
+  });
+
+  it("builds launch options with chromium.args, no-sandbox flags and a 1280x720 viewport", () => {
+    const options = buildServerlessLaunchOptions("/tmp/chromium", {
+      args: ["--disable-dev-shm-usage"],
+      headless: "shell",
+    });
+    expect(options.executablePath).toBe("/tmp/chromium");
+    expect(options.args).toContain("--disable-dev-shm-usage");
+    expect(options.args).toContain("--no-sandbox");
+    expect(options.args).toContain("--disable-setuid-sandbox");
+    expect(options.defaultViewport).toEqual({ width: 1280, height: 720, deviceScaleFactor: 1 });
+    expect(options.headless).toBe("shell");
+  });
+
+  it("aligns the desktop UA to the running Chromium version", () => {
+    expect(desktopUserAgent("HeadlessChrome/131.0.6778.204")).toContain("Chrome/131.0.0.0");
+    expect(desktopUserAgent("")).toContain("Windows NT 10.0");
+  });
+});
+
 describe("/api/preview endpoint", () => {
   let server;
   let base;
@@ -166,5 +197,42 @@ describe("/api/preview endpoint", () => {
   it("rejects unsafe URLs with 400", async () => {
     const response = await fetch(`${base}/api/preview?url=${encodeURIComponent("file:///etc/passwd")}`);
     expect(response.status).toBe(400);
+  });
+});
+
+describe("Vercel function handler (api/preview.mjs)", () => {
+  function mockRes() {
+    return {
+      statusCode: null,
+      body: null,
+      headers: {},
+      setHeader(key, value) {
+        this.headers[key] = value;
+      },
+      status(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json(payload) {
+        this.body = payload;
+        return this;
+      },
+    };
+  }
+
+  it("rejects non-GET and missing/invalid URLs without launching a browser", async () => {
+    const handler = (await import("../../../api/preview.mjs")).default;
+
+    const post = mockRes();
+    await handler({ method: "POST", url: "/api/preview", query: {} }, post);
+    expect(post.statusCode).toBe(405);
+
+    const missing = mockRes();
+    await handler({ method: "GET", url: "/api/preview", query: {} }, missing);
+    expect(missing.statusCode).toBe(400);
+
+    const unsafe = mockRes();
+    await handler({ method: "GET", url: "/api/preview", query: { url: "file:///etc/passwd" } }, unsafe);
+    expect(unsafe.statusCode).toBe(400);
   });
 });

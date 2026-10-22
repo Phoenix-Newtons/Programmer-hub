@@ -60,11 +60,33 @@ request, page closed in `finally`, concurrency-capped) and returns JSON:
 }
 ```
 
-Needs a browser binary: `npm install puppeteer` (manages its own
-Chromium) **or** set `PUPPETEER_EXECUTABLE_PATH` to a system Chrome
-(`puppeteer-core` is already a dependency). Without one the endpoint
-answers `503 BROWSER_UNAVAILABLE` with setup instructions instead of a
-misleading 502.
+Needs a browser binary — resolved in this order:
+
+1. **Serverless (Vercel/Lambda/Netlify, auto-detected):**
+   `@sparticuz/chromium-min` + `puppeteer-core`. At cold start the
+   service downloads the version-matched pack
+   (`chromium-v131.0.1-pack.tar` from the Sparticuz GitHub release, or
+   your `CHROMIUM_PACK_URL` mirror) to `/tmp`, extracts it once per warm
+   instance, and launches with `chromium.args` + `--no-sandbox`. The
+   browser is closed after **every** capture — frozen function instances
+   never hold ghost Chrome. This is the fix for the serverless
+   "No Chrome/Chromium found" 502: there is no system Chrome on those
+   platforms, and standard `puppeteer` (150 MB bundled Chromium) is the
+   wrong package there.
+2. **Local/container:** `PUPPETEER_EXECUTABLE_PATH` or a system Chrome
+   via `puppeteer-core`; full `puppeteer` if you installed it.
+3. Otherwise the endpoint answers `503 BROWSER_UNAVAILABLE` with setup
+   instructions instead of a misleading 502.
+
+On Vercel the endpoint also ships as a real function at
+`api/preview.mjs`, with `vercel.json` giving it `maxDuration: 60` and
+`memory: 1024` (25s navigation budget + cold-start pack download must
+fit the limit with room to spare; raise memory before raising timeout —
+Chromium wants ≥1 GB). The SPA rewrite explicitly excludes `/api/`.
+For Heroku/Render-style hosts, prefer a Docker image with system
+Chromium (`PUPPETEER_EXECUTABLE_PATH`) over the serverless pack: the
+pack is built for Lambda-family images and expects their system
+libraries (it will not run on a bare Debian box missing e.g. libnss3).
 
 **Cloudflare-protected targets:** the service detects challenge
 interstitials ("Just a moment…") and returns

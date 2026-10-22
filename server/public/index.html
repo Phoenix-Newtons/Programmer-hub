@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Programmer's Hub — Live Website Preview (proxy demo)</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <h1>Live website preview</h1>
+        <p class="sub">
+          Pages are fetched by the local reverse proxy (<code>/proxy</code>), which strips
+          <code>X-Frame-Options</code> / CSP framing headers and injects a <code>&lt;base&gt;</code> tag so
+          relative assets still load.
+        </p>
+      </header>
+
+      <form id="preview-form" class="bar">
+        <label class="sr-only" for="url-input">Website URL</label>
+        <input
+          id="url-input"
+          type="url"
+          inputmode="url"
+          autocomplete="url"
+          placeholder="https://example.com"
+          required
+        />
+        <button id="load-button" type="submit">Load Live Preview</button>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite">Enter a URL to preview it here.</p>
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <section class="frame-wrap" aria-label="Website preview">
+        <div id="spinner" class="spinner" hidden>
+          <span class="ring" aria-hidden="true"></span>
+          Loading preview…
+        </div>
+
+        <!--
+          ⚠ SECURITY: the sandbox deliberately OMITS allow-same-origin.
+          Proxied third-party scripts run in an opaque origin, so they
+          cannot reach this page's DOM, cookies or localStorage even
+          though the HTML is served from the proxy's origin. Only add
+          allow-same-origin if you fully trust every proxied host — and
+          host the proxy on a separate subdomain from your real app.
+        -->
+        <iframe
+          id="preview-frame"
+          title="Live website preview"
+          sandbox="allow-scripts allow-forms allow-popups"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </section>
+
+      <footer>
+        <p>
+          Demo for local development. In production set <code>PROXY_ALLOWED_HOSTS</code> and serve the proxy
+          from its own subdomain — an unrestricted framing proxy is a phishing/SSRF risk.
+        </p>
+      </footer>
+    </main>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

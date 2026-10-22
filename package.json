@@ -3,7 +3,7 @@
   "private": true,
   "version": "2.0.0",
   "type": "module",
-  "description": "Programmer's Hub — a modern developer marketplace to showcase skills, ship projects and get hired.",
+  "description": "Programmer's Hub \u2014 a modern developer marketplace to showcase skills, ship projects and get hired.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -18,10 +18,13 @@
     "assets:brand": "python3 scripts/generate-brand-assets.py",
     "format:check": "prettier --check .",
     "check:build": "node scripts/check-build.mjs",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "proxy": "node server/preview-proxy.mjs",
+    "proxy:test": "node --check server/preview-proxy.mjs && node --check server/proxy-core.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
+    "express": "^5.3.0",
     "lucide-react": "^1.37.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

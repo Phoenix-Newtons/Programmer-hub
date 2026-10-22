@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Frontend-only website link preview. Screenshots are rendered by the Microlink API — no backend, no Puppeteer, nothing to time out on Vercel."
+    />
+    <title>Link Preview — frontend-only website snapshots</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <p class="eyebrow">Frontend-only · zero backend</p>
+        <h1>Link Preview</h1>
+        <p class="sub">
+          Paste any website URL and get a live snapshot. The screenshot is rendered by
+          <a href="https://microlink.io" target="_blank" rel="noopener noreferrer">Microlink's</a>
+          public API and streamed straight into the image below — this page is plain HTML, CSS and JavaScript,
+          so Vercel serves it as a static file with no function timeouts, no Chromium downloads and no 502s.
+        </p>
+      </header>
+
+      <form id="preview-form" class="bar" novalidate>
+        <label class="sr-only" for="url-input">Website URL</label>
+        <input
+          id="url-input"
+          type="text"
+          inputmode="url"
+          autocomplete="url"
+          spellcheck="false"
+          placeholder="example.com or https://your-site.vercel.app"
+          aria-describedby="status error"
+        />
+        <button id="load-button" type="submit">Load Live Preview</button>
+      </form>
+
+      <p id="status" class="status" role="status" aria-live="polite">Enter a URL to generate its snapshot.</p>
+      <p id="error" class="error" role="alert" hidden></p>
+
+      <section class="preview-card" aria-label="Website snapshot">
+        <div class="preview-head">
+          <span class="dots" aria-hidden="true"> <span></span><span></span><span></span> </span>
+          <span id="preview-host" class="host">No site loaded</span>
+          <a id="open-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Open site ↗</a>
+        </div>
+
+        <div class="preview-stage">
+          <!-- Spinner overlays the stage until the <img> fires load/error. -->
+          <div id="spinner" class="spinner" hidden>
+            <span class="ring" aria-hidden="true"></span>
+            <span>Rendering snapshot…</span>
+          </div>
+
+          <p id="placeholder" class="placeholder">
+            Your snapshot will appear here.<br />
+            <small
+              >Try
+              <button type="button" class="linklike" data-example="https://vercel.com">vercel.com</button> or
+              <button type="button" class="linklike" data-example="https://github.com">
+                github.com
+              </button></small
+            >
+          </p>
+
+          <!--
+            The snapshot itself. Its src is set by script.js to:
+            https://api.microlink.io/?url=<encodeURIComponent(target)>&screenshot=true&embed=screenshot.url
+            With `embed`, Microlink returns the image bytes directly, so a
+            plain <img> is all you need — no fetch, no CORS, no backend.
+          -->
+          <img id="preview-img" alt="" hidden />
+        </div>
+
+        <div class="preview-foot">
+          <div>
+            <h2 id="preview-title">Nothing loaded yet</h2>
+            <p id="preview-description" class="sub small">
+              Title and description are fetched from Microlink's metadata API alongside the snapshot.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        <p>
+          Free tier note: Microlink's public API is rate-limited per IP. For production traffic add your own
+          (free) Microlink API key in <code>script.js</code> — it still needs no backend, the key is a
+          publishable client key.
+        </p>
+      </footer>
+    </main>
+
+    <script src="/script.js" defer></script>
+  </body>
+</html>

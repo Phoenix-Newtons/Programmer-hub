@@ -1,5 +1,5 @@
+import { act, useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { useState } from "react";
 import Modal from "../ui/Modal";
 import Button from "../ui/Button";
 import { useToast } from "../../context/ToastContext";
@@ -71,6 +71,58 @@ describe("Modal", () => {
     expect(onClose).toHaveBeenCalled();
     expect(document.querySelector('[role="dialog"]')).toBe(null);
     expect(document.activeElement).toBe(trigger);
+
+    await view.unmount();
+  });
+
+  it("keeps focus on the active input across controlled state re-renders", async () => {
+    function ControlledModalHost() {
+      const [open, setOpen] = useState(true);
+      const [first, setFirst] = useState("");
+      const [second, setSecond] = useState("");
+      return (
+        <Modal open={open} onClose={() => setOpen(false)} title="Publish">
+          <input aria-label="First field" value={first} onChange={(event) => setFirst(event.target.value)} />
+          <textarea
+            aria-label="Second field"
+            value={second}
+            onChange={(event) => setSecond(event.target.value)}
+          />
+        </Modal>
+      );
+    }
+
+    const view = await renderWithProviders(<ControlledModalHost />);
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    const firstInput = document.querySelector('[aria-label="First field"]');
+    const secondInput = document.querySelector('[aria-label="Second field"]');
+    expect(document.activeElement).toBe(firstInput);
+
+    // Type character-by-character into the first input
+    for (const next of ["K", "Ka", "Kam"]) {
+      await act(async () => {
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+        setter.call(firstInput, next);
+        firstInput.dispatchEvent(new window.Event("input", { bubbles: true }));
+      });
+      await new Promise((resolve) => setTimeout(resolve, 35));
+      expect(document.activeElement).toBe(firstInput);
+      expect(firstInput.value).toBe(next);
+    }
+
+    // Move cursor to the second textarea and type character-by-character
+    secondInput.focus();
+    for (const next of ["B", "Bu", "Bus"]) {
+      await act(async () => {
+        const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+        setter.call(secondInput, next);
+        secondInput.dispatchEvent(new window.Event("input", { bubbles: true }));
+      });
+      await new Promise((resolve) => setTimeout(resolve, 35));
+      expect(document.activeElement).toBe(secondInput);
+      expect(secondInput.value).toBe(next);
+    }
 
     await view.unmount();
   });

@@ -40,12 +40,19 @@ export default function JobFormModal({ open, onClose, onSaved, job }) {
   const [saving, setSaving] = useState(false);
   const isEditing = Boolean(job?.id);
   const restoredRef = useRef(false);
+  const seededForRef = useRef(null);
   useEffect(() => {
     restoredRef.current = form.restored;
   }, [form.restored]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      seededForRef.current = null;
+      return;
+    }
+    const seedKey = job?.id ?? "new";
+    if (seededForRef.current === seedKey) return;
+    seededForRef.current = seedKey;
     setErrors({});
     // A recovered draft wins over programmatic seeding — never overwrite
     // what the user typed before an accidental close / refresh.

@@ -10,6 +10,12 @@ const FOCUSABLE = [
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 
+const INTERACTIVE_FIELDS = [
+  "input:not([disabled]):not([type='hidden'])",
+  "textarea:not([disabled])",
+  "select:not([disabled])",
+].join(",");
+
 /**
  * Keeps keyboard focus inside a dialog while it is open, closes on Escape and
  * returns focus to whatever was focused before.
@@ -20,6 +26,11 @@ export default function useFocusTrap(
   { onEscape, initialFocus, restoreFocus = true } = {}
 ) {
   const previouslyFocused = useRef(null);
+  const optionsRef = useRef({ onEscape, initialFocus, restoreFocus });
+
+  useEffect(() => {
+    optionsRef.current = { onEscape, initialFocus, restoreFocus };
+  }, [onEscape, initialFocus, restoreFocus]);
 
   useEffect(() => {
     if (!active) return undefined;
@@ -33,14 +44,23 @@ export default function useFocusTrap(
         (el) => el.offsetParent !== null || el === document.activeElement
       );
 
-    // Move focus in: an explicit target, the first field, or the container.
-    const target =
-      (typeof initialFocus === "string" ? node.querySelector(initialFocus) : initialFocus) ||
-      node.querySelector("[data-autofocus]") ||
-      node.querySelector("input, textarea, select, button") ||
-      node;
-
     const timer = setTimeout(() => {
+      // Do not steal focus if the user has already focused a control inside the dialog.
+      if (node.contains(document.activeElement) && document.activeElement !== node) {
+        return;
+      }
+
+      const { initialFocus: currentInitialFocus } = optionsRef.current;
+      // Move focus in: an explicit target, the first form field, any focusable control, or the container.
+      const target =
+        (typeof currentInitialFocus === "string"
+          ? node.querySelector(currentInitialFocus)
+          : currentInitialFocus) ||
+        node.querySelector("[data-autofocus]") ||
+        node.querySelector(INTERACTIVE_FIELDS) ||
+        node.querySelector(FOCUSABLE) ||
+        node;
+
       try {
         target.focus({ preventScroll: true });
         if (target === node) node.setAttribute("tabindex", "-1");
@@ -52,7 +72,7 @@ export default function useFocusTrap(
     const onKeyDown = (event) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onEscape?.();
+        optionsRef.current.onEscape?.();
         return;
       }
       if (event.key !== "Tab") return;
@@ -77,7 +97,7 @@ export default function useFocusTrap(
       clearTimeout(timer);
       node.removeEventListener("keydown", onKeyDown);
       const previous = previouslyFocused.current;
-      if (restoreFocus && previous && typeof previous.focus === "function") {
+      if (optionsRef.current.restoreFocus && previous && typeof previous.focus === "function") {
         try {
           previous.focus({ preventScroll: true });
         } catch {
@@ -85,5 +105,5 @@ export default function useFocusTrap(
         }
       }
     };
-  }, [ref, active, onEscape, initialFocus, restoreFocus]);
+  }, [ref, active]);
 }

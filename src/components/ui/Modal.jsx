@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useId, useRef } from "react";
+import { useCallback, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 import useFocusTrap from "../../hooks/useFocusTrap";
@@ -28,11 +28,20 @@ export default function Modal({
   labelledBy,
 }) {
   const panelRef = useRef(null);
+  const onCloseRef = useRef(onClose);
   const generatedId = useId();
   const titleId = labelledBy || `modal-title-${generatedId}`;
 
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const handleClose = useCallback(() => {
+    onCloseRef.current?.();
+  }, []);
+
   useFocusTrap(panelRef, open, {
-    onEscape: () => onClose?.(),
+    onEscape: handleClose,
     initialFocus: "[data-autofocus]",
   });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Save, Tags } from "lucide-react";
 
 import Modal from "../ui/Modal";
@@ -28,9 +28,16 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const isEditing = Boolean(project?.id);
+  const seededForRef = useRef(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      seededForRef.current = null;
+      return;
+    }
+    const seedKey = project?.id ?? "new";
+    if (seededForRef.current === seedKey) return;
+    seededForRef.current = seedKey;
     setErrors({});
     setValues(
       project
@@ -142,6 +149,7 @@ export default function ProjectFormModal({ open, onClose, onSaved, project }) {
           error={errors.title}
           placeholder="e.g. Kampala Bus Tracker"
           maxLength={90}
+          data-autofocus
         />
 
         <Field

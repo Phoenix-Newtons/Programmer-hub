@@ -59,7 +59,7 @@ export async function renderWithProviders(ui, { route = "/" } = {}) {
   const type = async (input, value) => {
     if (!input) throw new Error("type() received a missing input");
     await act(async () => {
-      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+      const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input), "value")?.set;
       if (setter) setter.call(input, value);
       else input.value = value;
       input.dispatchEvent(new window.Event("input", { bubbles: true }));

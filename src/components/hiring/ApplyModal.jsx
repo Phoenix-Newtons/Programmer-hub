@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import Modal from "../ui/Modal";
 import Field from "../ui/Field";
@@ -20,9 +20,16 @@ export default function ApplyModal({ open, onClose, job, onSuccess }) {
   const [values, setValues] = useState({ name: "", email: "", portfolio: "", message: "" });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const seededForRef = useRef(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      seededForRef.current = null;
+      return;
+    }
+    const seedKey = job?.id ?? "new";
+    if (seededForRef.current === seedKey) return;
+    seededForRef.current = seedKey;
     setErrors({});
     setValues({
       name: displayName || "",
